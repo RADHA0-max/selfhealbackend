@@ -1,0 +1,11 @@
+groups:
+  - name: traffic_spike
+    rules:
+      - alert: TrafficSpikeAnomaly
+        expr: sum(rate(request_count_total[15s])) > 100
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Traffic Spike Detected"
+          description: "Traffic has exceeded 100 RPS for 15s (current value: {{ $value }} RPS)"

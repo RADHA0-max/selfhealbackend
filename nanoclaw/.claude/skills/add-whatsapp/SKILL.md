@@ -1,0 +1,370 @@
+---
+name: add-whatsapp
+description: Add WhatsApp channel via native Baileys adapter. Direct connection — no Chat SDK bridge. Uses QR code or pairing code for authentication.
+---
+
+# Add WhatsApp Channel
+
+Adds WhatsApp support via the native Baileys adapter (no Chat SDK bridge).
+
+## Number safety check (required)
+
+Complete this check before running any install or authentication command. If the user already said they want to use their **shared**, **personal**, **main**, **existing**, or **everyday** WhatsApp number, treat it as a shared number and show the warning immediately. Do not ask the number-type question again.
+
+Otherwise, use `AskUserQuestion`:
+
+**Which WhatsApp number will NanoClaw use?**
+
+- **Dedicated number (Recommended)** — a separate number used only for NanoClaw
+- **Shared / personal number** — the user's existing everyday WhatsApp number
+
+Remember the answer as `NUMBER_MODE` for the rest of this workflow.
+
+If `NUMBER_MODE=shared`, show this warning exactly:
+
+> ⚠️ **Risk to your WhatsApp account**
+>
+> Connecting your shared or personal number could cause WhatsApp to temporarily suspend or permanently ban that number. You could lose access to the WhatsApp account, chats, and groups you rely on.
+>
+> We strongly recommend using a separate, dedicated number for NanoClaw.
+
+Then use `AskUserQuestion`:
+
+- **Go back and use a dedicated number (Recommended)**
+- **I understand the risk — continue with my shared number**
+
+Do not continue with installation or authentication unless the user explicitly selects the second option. If they choose a dedicated number, set `NUMBER_MODE=dedicated` and continue without showing the warning again.
+
+## Install
+
+NanoClaw doesn't ship channels in trunk. This skill copies the native WhatsApp (Baileys) adapter and its `whatsapp-auth` setup step in from the `channels` branch. No Chat SDK bridge.
+
+### Pre-flight (idempotent)
+
+Skip to **Credentials** if all of these are already in place:
+
+- `src/channels/whatsapp.ts` exists
+- `src/channels/whatsapp-registration.test.ts` exists
+- `src/channels/whatsapp.test.ts` exists
+- `src/channels/index.ts` contains `import './whatsapp.js';`
+- `setup/whatsapp-auth.ts` and `setup/groups.ts` both exist
+- `container/skills/whatsapp-formatting/instructions.md` exists
+- `setup/index.ts`'s `STEPS` map contains both `'whatsapp-auth':` and `groups:`
+- `@whiskeysockets/baileys`, `qrcode`, `pino` are listed in `package.json` dependencies
+- `.claude/skills/add-whatsapp/scripts/wa-qr-browser.ts` exists (ships with this skill)
+
+Otherwise continue. Every step below is safe to re-run.
+
+### 1. Fetch the channels branch
+
+```bash
+git fetch origin channels
+```
+
+### 2. Copy the adapter and setup steps
+
+```bash
+git show origin/channels:src/channels/whatsapp.ts                      > src/channels/whatsapp.ts
+git show origin/channels:src/channels/whatsapp-registration.test.ts    > src/channels/whatsapp-registration.test.ts
+git show origin/channels:src/channels/whatsapp.test.ts                 > src/channels/whatsapp.test.ts
+git show origin/channels:setup/whatsapp-auth.ts                        > setup/whatsapp-auth.ts
+git show origin/channels:setup/groups.ts                               > setup/groups.ts
+mkdir -p container/skills/whatsapp-formatting
+git show origin/channels:container/skills/whatsapp-formatting/SKILL.md        > container/skills/whatsapp-formatting/SKILL.md
+git show origin/channels:container/skills/whatsapp-formatting/instructions.md > container/skills/whatsapp-formatting/instructions.md
+```
+
+The `whatsapp-formatting` container skill is part of the channel payload: its
+`instructions.md` becomes the `skill-whatsapp-formatting.md` fragment in every
+group's composed CLAUDE.md (see `src/claude-md-compose.ts`), teaching agents
+WhatsApp's formatting syntax. Trunk does not ship it — without this copy step
+agents format WhatsApp messages with generic markdown that renders literally.
+
+### 3. Append the self-registration import
+
+Append to `src/channels/index.ts` (skip if already present):
+
+```typescript
+import './whatsapp.js';
+```
+
+### 4. Register the setup steps
+
+In `setup/index.ts`, add these entries to the `STEPS` map (skip lines already present):
+
+```typescript
+groups: () => import('./groups.js'),
+'whatsapp-auth': () => import('./whatsapp-auth.js'),
+```
+
+### 5. Install the adapter packages (pinned)
+
+```bash
+pnpm install @whiskeysockets/baileys@7.0.0-rc.9 qrcode@1.5.4 @types/qrcode@1.5.6 pino@9.6.0
+```
+
+### 6. Build and validate
+
+```bash
+pnpm run build
+pnpm exec vitest run src/channels/whatsapp-registration.test.ts
+```
+
+Both must be clean before proceeding. `whatsapp-registration.test.ts` is the one integration test: it imports the real channel barrel and asserts the registry contains `whatsapp`. It goes red if the `import './whatsapp.js';` line is deleted or drifts, if the barrel fails to evaluate (so the channel genuinely would not register), or if `@whiskeysockets/baileys` isn't installed (the import throws) — so it also implicitly verifies the dependency from step 5.
+
+End-to-end message delivery against a real WhatsApp number is verified manually once the service is running — see Credentials, Wiring, and Troubleshooting.
+
+## Credentials
+
+WhatsApp uses linked-device authentication — no API key, just a one-time pairing from your phone.
+
+### Check current state
+
+Check if WhatsApp is already authenticated. The number safety check above is still required even when credentials already exist. If `store/auth/creds.json` exists, skip to "Dedicated vs personal number" after completing the safety check.
+
+```bash
+test -f store/auth/creds.json && echo "WhatsApp auth exists" || echo "No WhatsApp auth"
+```
+
+### Detect environment
+
+Check whether the environment is headless (no display server):
+
+```bash
+[[ -z "$DISPLAY" && -z "$WAYLAND_DISPLAY" && "$OSTYPE" != darwin* ]] && echo "IS_HEADLESS=true" || echo "IS_HEADLESS=false"
+```
+
+### Ask the user
+
+Use `AskUserQuestion` to collect configuration. **Adapt auth options based on environment:**
+
+If IS_HEADLESS=true AND not WSL → AskUserQuestion: How do you want to authenticate WhatsApp?
+- **Pairing code** (Recommended) - Enter a numeric code on your phone (no camera needed, requires phone number)
+- **QR code in terminal** - Displays QR code in the terminal (can be too small on some displays)
+
+Otherwise (macOS, desktop Linux, or WSL) → AskUserQuestion: How do you want to authenticate WhatsApp?
+- **QR code in browser** (Recommended) - Runs a small local HTTP server that renders the rotating QR as a PNG and auto-opens your default browser
+- **Pairing code** - Enter a numeric code on your phone (no camera needed, requires phone number)
+- **QR code in terminal** - Displays QR code in the terminal (can be too small on some displays)
+
+If they chose pairing code:
+
+AskUserQuestion: What is your phone number? (Digits only — country code followed by your 10-digit number, no + prefix, spaces, or dashes. Example: 14155551234 where 1 is the US country code and 4155551234 is the phone number.)
+
+### Clean previous auth state (if re-authenticating)
+
+```bash
+rm -rf store/auth/
+```
+
+### Run WhatsApp authentication
+
+For QR code in browser (recommended):
+
+```bash
+pnpm exec tsx .claude/skills/add-whatsapp/scripts/wa-qr-browser.ts
+```
+
+(Bash timeout: 150000ms)
+
+The wrapper spawns `setup/index.ts --step whatsapp-auth -- --method qr`, parses each rotating QR from its `WHATSAPP_AUTH_QR` status blocks, and serves the current QR as a PNG on a local HTTP server (default port `8765`, falls back to a free port). Flags: `--clean` (wipes `store/auth/` before spawning) and `--port N`.
+
+Tell the user:
+
+> A browser window will open with a QR code.
+>
+> 1. Open WhatsApp > **Settings** > **Linked Devices** > **Link a Device**
+> 2. Scan the QR code in the browser
+> 3. The page will show "Authenticated!" when done
+
+For QR code in terminal:
+
+```bash
+pnpm exec tsx setup/index.ts --step whatsapp-auth -- --method qr
+```
+
+(Bash timeout: 150000ms)
+
+The setup driver emits each rotating QR as a `WHATSAPP_AUTH_QR` status block; when run directly (not through `setup:auto`) the raw QR string is printed and your terminal must render it as ASCII. If your terminal can't render it readably, use the browser method above.
+
+Tell the user:
+
+> 1. Open WhatsApp > **Settings** > **Linked Devices** > **Link a Device**
+> 2. Scan the QR code displayed in the terminal
+
+For pairing code:
+
+Tell the user to have WhatsApp open on **Settings > Linked Devices > Link a Device**, ready to tap **"Link with phone number instead"** — the code expires in ~60 seconds and must be entered immediately.
+
+Run the auth process in the background and poll `store/pairing-code.txt` for the code:
+
+```bash
+rm -f store/pairing-code.txt && pnpm exec tsx setup/index.ts --step whatsapp-auth -- --method pairing-code --phone <their-phone-number> > /tmp/wa-auth.log 2>&1 &
+```
+
+Then immediately poll for the code (do NOT wait for the background command to finish):
+
+```bash
+for i in $(seq 1 20); do [ -f store/pairing-code.txt ] && cat store/pairing-code.txt && break; sleep 1; done
+```
+
+Display the code to the user the moment it appears. Tell them:
+
+> **Enter this code now** — it expires in ~60 seconds.
+>
+> 1. Open WhatsApp > **Settings** > **Linked Devices** > **Link a Device**
+> 2. Tap **Link with phone number instead**
+> 3. Enter the code immediately
+
+After the user enters the code, poll for authentication to complete:
+
+```bash
+for i in $(seq 1 60); do grep -q 'STATUS: authenticated' /tmp/wa-auth.log 2>/dev/null && echo "authenticated" && break; grep -q 'STATUS: failed' /tmp/wa-auth.log 2>/dev/null && echo "failed" && break; sleep 2; done
+```
+
+**If failed:** logged_out → delete `store/auth/` and re-run. timeout → ask user, offer retry.
+
+### Verify authentication succeeded
+
+```bash
+test -f store/auth/creds.json && echo "Authentication successful" || echo "Authentication failed"
+```
+
+## Dedicated vs personal number
+
+The adapter behaves fundamentally differently depending on whether the linked number is the assistant's own or the operator's personal one. The switch is `ASSISTANT_HAS_OWN_NUMBER` in `.env`, read by the adapter itself at startup. **Inference rule: absent (or anything other than `true`) means shared/personal** — the safe default, since misreading a personal number as dedicated makes the bot claim messages addressed to the human.
+
+- **Shared/personal number** (`ASSISTANT_HAS_OWN_NUMBER` unset or not `true`) — DMs to this number and group @-tags of it address the *human*, not the bot. The adapter never emits a mention signal (`mentions: 'never'` in its declared channel defaults), so: no stranger DM ever auto-creates a messaging group or raises an admin approval card; group wirings default to a name pattern (`\b<AgentName>\b`) instead of platform mentions; auto-created chats default to `unknown_sender_policy: 'strict'`; outbound messages are prefixed with the assistant's name.
+- **Dedicated number** (`ASSISTANT_HAS_OWN_NUMBER=true`) — everything sent to the number is for the bot. DMs and group mentions carry a real mention signal (`mentions: 'platform'`), unknown senders escalate via `request_approval` approval cards, and card-approved groups wire with `engage_mode: 'mention'`. No name prefix on outbound.
+
+Use the `NUMBER_MODE` selected in the required safety check. If information discovered later contradicts that selection, ask again before changing modes; switching to shared requires the same warning and explicit acknowledgement.
+
+Write the answer to `.env` **explicitly in both cases** (don't rely on the inference rule for new installs):
+
+```bash
+# Dedicated:
+ASSISTANT_HAS_OWN_NUMBER=true
+# Shared/personal:
+ASSISTANT_HAS_OWN_NUMBER=false
+```
+
+### Update path: existing install, flag unset
+
+If WhatsApp auth already exists (`store/auth/creds.json` present) but `.env` has no `ASSISTANT_HAS_OWN_NUMBER` line, the install predates the explicit switch. Use the mode established by the required safety check and write it explicitly.
+
+Suggest a default by comparing the authed number against the wired DM chat:
+
+```bash
+# The number this install is authenticated as
+node -e "const c=JSON.parse(require('fs').readFileSync('store/auth/creds.json','utf-8'));console.log(c.me?.id?.split(':')[0])"
+# The wired WhatsApp DM chats
+pnpm exec tsx scripts/q.ts data/v2.db "SELECT mg.platform_id FROM messaging_groups mg JOIN messaging_group_agents mga ON mg.id=mga.messaging_group_id WHERE mg.channel_type='whatsapp' AND mg.is_group=0"
+```
+
+If the wired DM's phone **equals** the authed number, the operator is talking to the bot in their own self-chat — that's a personal number: suggest **Shared**. If they differ, the operator messages the bot from a different number: suggest **Dedicated**. Confirm with the operator either way, then write the flag and restart the service.
+
+### Migration audit: spam-era group wirings
+
+Before the shared-number fix, group chats approved via the channel-registration card were wired `engage_mode='pattern'` with pattern `.` — respond-to-everything — because the card flow couldn't tell groups from DMs on non-threaded platforms. On a personal number this shows up as the bot answering every message in family/work groups after someone once tapped Connect on a spam-triggered card.
+
+List the suspect wirings (host service running — `ncl` is socket-only):
+
+```bash
+ncl wirings list --engage-mode pattern --engage-pattern "." --json
+```
+
+Cross-reference against WhatsApp group chats (`ncl messaging-groups list --channel-type whatsapp --is-group 1`). For each wiring with pattern `.` on a WhatsApp group that is *not* the operator's deliberate always-on chat (e.g. their self-chat), offer:
+
+- **Flip to name-based engagement**: `ncl wirings update <wiring-id> --engage-mode pattern --engage-pattern '\b<AgentName>\b'` (or `--engage-mode mention` on a dedicated number)
+- **Delete the wiring**: `ncl wirings delete <wiring-id>`
+
+Stale approval cards from that era can also linger. Clear pending channel approvals for chats the operator doesn't want wired:
+
+```bash
+pnpm exec tsx scripts/q.ts data/v2.db "DELETE FROM pending_channel_approvals WHERE messaging_group_id IN (SELECT id FROM messaging_groups WHERE channel_type='whatsapp')"
+```
+
+## Next Steps
+
+If you're in the middle of `/setup`, return to the setup flow now.
+
+Otherwise, run `/manage-channels` to wire this channel to an agent group.
+
+## Channel Info
+
+- **type**: `whatsapp`
+- **terminology**: WhatsApp calls them "groups" and "chats." A "chat" is a 1:1 DM; a "group" has multiple members.
+- **how-to-find-id**: DMs use `<phone>@s.whatsapp.net` (e.g. `14155551234@s.whatsapp.net`). Groups use `<id>@g.us`. To find your number: `node -e "const c=JSON.parse(require('fs').readFileSync('store/auth/creds.json','utf-8'));console.log(c.me?.id?.split(':')[0]+'@s.whatsapp.net')"`. Groups are auto-discovered — check `pnpm exec tsx scripts/q.ts data/v2.db "SELECT platform_id, name FROM messaging_groups WHERE channel_type='whatsapp' AND is_group=1"`.
+- **supports-threads**: no
+- **typical-use**: Interactive chat — direct messages or small groups
+- **default-isolation**: Same agent group if you're the only participant across multiple chats. Separate agent group if different people are in different groups.
+
+### Features
+
+- Markdown formatting — `**bold**`→`*bold*`, `*italic*`→`_italic_`, headings→bold, code blocks preserved
+- Approval questions — `ask_user_question` renders with `/approve`, `/reject` slash commands
+- File attachments — send and receive images, video, audio, documents
+- Reactions — send emoji reactions on messages
+- Typing indicators — composing presence updates
+- Credential requests — text fallback (WhatsApp has no modal support)
+
+Not supported (WhatsApp linked device limitation): edit messages, delete messages.
+
+## Troubleshooting
+
+### QR code expired
+
+QR codes expire after ~60 seconds. The browser wrapper rotates automatically as long as it's running; if it was stopped, re-run with `--clean`:
+
+```bash
+pnpm exec tsx .claude/skills/add-whatsapp/scripts/wa-qr-browser.ts --clean
+```
+
+### Pairing code not working
+
+Codes expire in ~60 seconds. Delete auth and retry:
+
+```bash
+rm -rf store/auth/ && pnpm exec tsx setup/index.ts --step whatsapp-auth -- --method pairing-code --phone <phone>
+```
+
+Ensure: digits only (no `+`), phone has internet, WhatsApp is updated.
+
+WhatsApp's pairing-code flow occasionally rejects valid codes with "Couldn't link device — An error happened. Please try again." This is a server-side rejection unrelated to the code itself; we've seen it happen twice in a row on fresh dedicated numbers. If you hit it more than once, switch to QR-browser auth — it has a noticeably higher success rate:
+
+```bash
+pnpm exec tsx .claude/skills/add-whatsapp/scripts/wa-qr-browser.ts --clean
+```
+
+### "waiting for this message" on reactions
+
+Signal sessions corrupted from rapid restarts. Clear sessions.
+
+Run from your NanoClaw project root:
+
+```bash
+source setup/lib/install-slug.sh
+systemctl --user stop $(systemd_unit)
+rm store/auth/session-*.json
+systemctl --user start $(systemd_unit)
+```
+
+### Bot not responding
+
+1. Auth exists: `test -f store/auth/creds.json`
+2. Connected: `grep "Connected to WhatsApp" logs/nanoclaw.log | tail -1`
+3. Channel wired: `pnpm exec tsx scripts/q.ts data/v2.db "SELECT mg.platform_id, mg.name FROM messaging_groups mg JOIN messaging_group_agents mga ON mg.id=mga.messaging_group_id WHERE mg.channel_type='whatsapp'"`
+4. Service running: `systemctl --user status "$(. setup/lib/install-slug.sh && systemd_unit)"`
+
+### "conflict" disconnection
+
+Two instances connected with same credentials. Ensure only one NanoClaw process is running.
+
+### Trunk updated but shared-number behavior unchanged (stale adapter copy)
+
+The shared-number behavior (no stranger approval cards, name-pattern group defaults) lives in the **adapter copy** at `src/channels/whatsapp.ts`, installed from the `channels` branch — not in trunk. If you updated trunk via `/update-nanoclaw` but skipped the skill-update step, the old adapter copy neither reads `ASSISTANT_HAS_OWN_NUMBER` itself nor declares channel defaults, so trunk falls back to the legacy behavior: approval cards still fire on a personal number, and new wirings get the channel-blind defaults. Symptoms of the skew:
+
+- `.env` says `ASSISTANT_HAS_OWN_NUMBER=false` (or unset) but strangers' DMs still raise approval cards
+- `ncl wirings create` on a WhatsApp group defaults to `mention` instead of a name pattern
+
+Fix: re-run `/add-whatsapp` (or `/update-skills`) to pull the current adapter from the `channels` branch, then restart the service. The reverse skew (new adapter, old trunk) can't happen — the adapter's `defaults` field is optional and old trunk ignores it.
