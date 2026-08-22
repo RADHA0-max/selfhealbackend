@@ -6,7 +6,6 @@ nanoclaw/Host*
 nanoclaw/User-Agent*
 nanoclaw/POST
 .env
-
 .env.*
+!.env.example
 *.save
-.env
