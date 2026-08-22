@@ -1,0 +1,26 @@
+model_list:
+  - model_name: triage
+    litellm_params:
+      model: ollama/qwen2.5:3b-instruct-q4_K_M
+      api_base: http://host.docker.internal:11434
+      timeout: 30
+
+  - model_name: planning
+    litellm_params:
+      # 3b, not 7b — deliberate, hardware-constrained (WSL2 capped at
+      # 8GB RAM / 6 CPUs; a 7b model doesn't fit the budget alongside
+      # everything else running on this box).
+      model: ollama/qwen2.5:3b-instruct-q4_K_M
+      api_base: http://host.docker.internal:11434
+      timeout: 60
+
+  - model_name: deep_rca
+    litellm_params: { model: gemini/gemini-3.6-flash, timeout: 60 }
+
+router_settings:
+  num_retries: 2
+  fallbacks:
+    - { triage:   ["deep_rca"] }
+    - { planning: ["deep_rca"] }
+  # deep_rca has NO local fallback — by design.
+  # Cloud unavailable => router drops to ADVISORY mode.

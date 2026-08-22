@@ -48,7 +48,7 @@ class MetricsPoller:
         try:
             # Query rate over last 10s
             rate_resp = requests.get(f"{PROMETHEUS_URL}/api/v1/query", params={
-                "query": 'sum(rate(request_count_total[10s]))'
+                "query": 'sum(rate(request_arrivals_total[10s]))'
             }).json()
             rate = float(rate_resp['data']['result'][0]['value'][1]) if rate_resp['data']['result'] else 0.0
 
@@ -104,23 +104,32 @@ class MetricsPoller:
             return None
 
     def run_detectors(self, current_metrics):
-        if len(self.history["request_rate"]) < 3:
-            return None # Not enough data yet
-            
+        if len(self.history["request_rate"]) < 15:
+            return None  # not enough data yet
+        
+        
+        
         now = time.time()
         
-        # 1. Train/Retrain Isolation Forest every 5 mins
-        if not self.is_trained or (now - self.last_train_time) > 300:
-            X = np.column_stack((
-                self.history["request_rate"],
-                self.history["cpu_util"],
-                self.history["latency"],
-                self.history["error_rate"]
-            ))
-            self.iso_forest.fit(X)
-            self.is_trained = True
-            self.last_train_time = now
-            logger.info("Retrained Isolation Forest baseline.")
+        # 1. Train Isolation Forest once on baseline, then freeze.
+        # Retraining during an anomaly would let the model absorb
+        # windows 1-2 into "normal" and miss window 3.
+        if not self.is_trained:
+            # per-point filter, not all-or-nothing over the window
+            idxs = [i for i, r in enumerate(self.history["request_rate"]) if r > 50]
+            if len(idxs) >= 15:
+                sel = idxs[-15:]
+                X = np.column_stack((
+                    [self.history["request_rate"][i] for i in sel],
+                    [self.history["cpu_util"][i]     for i in sel],
+                    [self.history["latency"][i]      for i in sel],
+                    [self.history["error_rate"][i]   for i in sel],
+                ))
+                self.iso_forest.fit(X)
+                self.is_trained = True
+                logger.info("Trained Isolation Forest baseline (frozen — no retrain).")
+            else:
+                return None  # wait for 15 clean high-traffic points
 
         # 2. Real-time Detection (Isolation Forest)
         current_pt = np.array([[
@@ -131,9 +140,12 @@ class MetricsPoller:
         ]])
         
         anomaly_score = self.iso_forest.decision_function(current_pt)[0]
+        logger.info(f"Anomaly score: {anomaly_score:.3f}")
         
-        if anomaly_score < -0.1:
+        is_anomalous = (anomaly_score < -0.1) or (current_metrics["request_latency_seconds"] > 0.5)
+        if is_anomalous:
             self.realtime_anomaly_count += 1
+            logger.info(f"Anomaly detected! Score: {anomaly_score:.3f}, Latency: {current_metrics['request_latency_seconds']:.3f}s. Count: {self.realtime_anomaly_count}/3")
         else:
             self.realtime_anomaly_count = 0
             
@@ -141,26 +153,7 @@ class MetricsPoller:
         if self.realtime_anomaly_count >= 3:
             return "realtime_spike"
             
-        # 3. Predictive Detection (Holt-Winters)
-        # Only run predictive if we have enough data and no realtime spike
-        if len(self.history["request_rate"]) >= 90:
-            try:
-                # Use last 15 mins (90 points) to forecast next 5 mins (30 points)
-                series = np.array(self.history["request_rate"])
-                # Simple exponential smoothing for demo (trend=None since spikes can be sudden)
-                model = ExponentialSmoothing(series, trend='add', seasonal=None, initialization_method="estimated")
-                fit = model.fit()
-                forecast = fit.forecast(30)
-                
-                max_forecast = max(forecast)
-                if max_forecast > CAPACITY_THRESHOLD:
-                    logger.info(f"Predictive threshold crossed! Forecasted max RPS: {max_forecast:.1f}")
-                    return "predictive_spike"
-            except Exception as e:
-                logger.debug(f"Holt-Winters failed this cycle: {e}")
-
         return None
-
 
 class AlertManager:
     def should_alert(self, alert_type: str, payload: dict) -> bool:

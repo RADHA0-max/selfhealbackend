@@ -29,6 +29,7 @@ MEMORY_UTILIZATION = Gauge("memory_utilization", "Memory utilization percentage"
 ACTIVE_CONNECTIONS = Gauge("active_connections", "Currently active connections")
 HTTP_503_COUNT = Counter("http_503_count", "Total 503 responses")
 HTTP_200_COUNT = Counter("http_200_count", "Total 200 responses")
+REQUEST_ARRIVALS = Counter("request_arrivals", "Requests received (counted on arrival, before processing)")
 
 # ---------------------------------------------------------------------------
 # Internal state
@@ -118,6 +119,9 @@ def check_rate_limit() -> bool:
 def api_process():
     """Main API endpoint. Latency and error rate scale with simulated load."""
     global active_conns
+
+    # Count arrival BEFORE any processing or sleep
+    REQUEST_ARRIVALS.inc()
 
     # Rate-limit check
     if check_rate_limit():

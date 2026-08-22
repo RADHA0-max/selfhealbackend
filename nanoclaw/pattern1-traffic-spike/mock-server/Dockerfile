@@ -12,4 +12,4 @@ EXPOSE 8080
 # Our chaos/rate-limit state is stored in Python memory (not Redis).
 # If we had multiple workers, state would be split across processes.
 # We still get concurrency via --threads 4.
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "4", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "200", "app:app"]

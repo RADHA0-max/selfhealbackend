@@ -1,10 +1,52 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   mock-server:
     build: ./mock-server
     expose:
       - "8080"
     deploy:
       replicas: 1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  observer:
+    build: ./observer
+    depends_on:
+      redis:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  executor:
+    build: ./executor
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./analyzer/system-prompt.md:/app/analyzer/system-prompt.md:ro
+      - ./logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
     logging:
       driver: "json-file"
       options:

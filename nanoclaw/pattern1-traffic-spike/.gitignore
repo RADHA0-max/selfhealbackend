@@ -5,7 +5,3 @@ nanoclaw/Content-Type*
 nanoclaw/Host*
 nanoclaw/User-Agent*
 nanoclaw/POST
-.env
-
-.env.*
-*.save
