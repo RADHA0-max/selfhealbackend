@@ -9,3 +9,4 @@ nanoclaw/POST
 
 .env.*
 *.save
+.env
