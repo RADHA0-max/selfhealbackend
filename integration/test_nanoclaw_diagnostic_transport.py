@@ -46,6 +46,10 @@ class DiagnosticTests(unittest.TestCase):
         observed = []
         class Response:
             status = 200
+            @property
+            def content(self): return self
+            async def iter_chunked(self, size):
+                yield json.dumps(await self.json()).encode()
             async def __aenter__(self): return self
             async def __aexit__(self, *args): pass
             async def json(self):

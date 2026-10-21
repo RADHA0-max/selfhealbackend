@@ -4,6 +4,23 @@ import math
 from selfhealbench.bench.pilot import validate
 
 
+def verified_history(value):
+    if not isinstance(value, dict) or value.get("recovered") is not True:
+        return False
+    history = value.get("history")
+    if not isinstance(history, list) or len(history) < 3:
+        return False
+    previous = -1
+    for sample in history:
+        if not isinstance(sample, dict):
+            return False
+        elapsed = sample.get("elapsed_seconds")
+        if type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0 or elapsed <= previous or elapsed >= 20:
+            return False
+        previous = elapsed
+    return all(sample.get("ok") is True for sample in history[-3:])
+
+
 def summarize(scenarios, records, mode="offline_replay"):
     rows = []
     live = mode == "live"
@@ -43,7 +60,14 @@ def summarize(scenarios, records, mode="offline_replay"):
                                            and record.get("injection_ok") is True
                                            and (scenario["fault"] == "none"
                                                 or record.get("fault_observed") is True)
-                                           and record.get("recovery_verified") is True)
+                                           and record.get("recovery_verified") is True
+                                           and row["evidence_complete"]
+                                           and verified_history(record.get("baseline"))
+                                           and verified_history(record.get("verification"))
+                                           and (record.get("cleanup") == "verified"
+                                                if scenario["fault"] != "none"
+                                                else plan["action"] == "no_op")
+                                           and record.get("rollback") not in ("failed", "required"))
             for name in ("planning_seconds", "recovery_seconds", "agent_to_recovery_seconds"):
                 value = record.get(name)
                 if type(value) in (int, float) and math.isfinite(value) and value >= 0:

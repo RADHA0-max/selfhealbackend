@@ -4,7 +4,7 @@ Tests for the LiteLLM client.
 
 import asyncio
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 from broker.config import BrokerConfig
@@ -71,6 +71,10 @@ async def test_litellm_client_call_litellm_success(mock_config, mock_request):
         }]
     })
 
+    async def chunks(size):
+        yield json.dumps(await mock_response.json()).encode()
+    mock_response.content.iter_chunked = chunks
+
     # Create a mock session that properly handles async context manager
     mock_session = MagicMock()
 
@@ -103,6 +107,8 @@ async def test_litellm_client_call_litellm_success(mock_config, mock_request):
                     "max_tokens": 128,
                     "temperature": 0.5,
                 },
+                timeout=ANY,
+                allow_redirects=False,
                 headers={
                     "Authorization": "Bearer test_master_key",
                     "Content-Type": "application/json",
@@ -117,6 +123,10 @@ async def test_litellm_client_call_litellm_error(mock_config, mock_request):
     mock_response = AsyncMock()
     mock_response.status = 500
     mock_response.text = AsyncMock(return_value="Internal Server Error")
+
+    async def chunks(size):
+        yield json.dumps(await mock_response.json()).encode()
+    mock_response.content.iter_chunked = chunks
 
     # Create a mock session that properly handles async context manager
     mock_session = MagicMock()
@@ -139,7 +149,7 @@ async def test_litellm_client_call_litellm_error(mock_config, mock_request):
             assert response_data["request_id"] == "test-123"
             assert response_data["ok"] is False
             assert response_data["content"] is None
-            assert "Internal Server Error" in response_data["error"]
+            assert response_data["error"] == "inference backend failed"
 
 
 @pytest.mark.asyncio
