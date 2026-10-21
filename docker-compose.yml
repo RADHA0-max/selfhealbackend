@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  dockerproxy:
+    image: tecnativa/docker-socket-proxy
+    environment:
+      CONTAINERS: 1
+      SERVICES:   1
+      POST:       1
+      EXEC:       0      # Explicitly denied to prevent command injection
+      IMAGES:     0
+      VOLUMES:    0
+      NETWORKS:   0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - selfheal-trusted
+
+networks:
+  selfheal-trusted:
+    driver: bridge

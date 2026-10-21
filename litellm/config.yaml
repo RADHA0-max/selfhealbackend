@@ -1,0 +1,72 @@
+model_list:
+
+  # ============================================================
+  # FAST / TRIAGE
+  # GPU 0
+  # ============================================================
+  - model_name: fast
+    litellm_params:
+      model: ollama/qwen2.5:7b-q8_0
+      api_base: http://infer-0:11434
+
+  # ============================================================
+  # PLAN
+  # GPU 1
+  # ============================================================
+  - model_name: plan
+    litellm_params:
+      model: ollama/qwen2.5:7b-q8_0
+      api_base: http://infer-1:11434
+
+  # ============================================================
+  # DEEP RCA - LANE A
+  # GPU 2
+  # ============================================================
+  - model_name: deep
+    litellm_params:
+      model: ollama/qwen3-coder:30b
+      api_base: http://infer-2:11434
+
+  # ============================================================
+  # DEEP RCA - LANE B
+  # GPU 5
+  # ============================================================
+  - model_name: deep
+    litellm_params:
+      model: ollama/qwen2.5:32b-q4_K_M
+      api_base: http://infer-2b:11434
+
+  # ============================================================
+  # CODER / PATCH
+  # GPU 3
+  # 64K context
+  # ============================================================
+  - model_name: coder
+    litellm_params:
+      model: ollama_chat/qwen3-coder:30b-64k
+      api_base: http://infer-3:11434
+
+  # ============================================================
+  # EMBEDDINGS / RECALL
+  # GPU 4
+  # ============================================================
+  - model_name: embed
+    litellm_params:
+      model: ollama/nomic-embed-text:latest
+      api_base: http://infer-4:11434
+
+
+# ==============================================================
+# LOCAL-ONLY ROUTING
+# ==============================================================
+
+router_settings:
+  routing_strategy: simple-shuffle
+
+
+# ==============================================================
+# LOCAL GATEWAY
+# ==============================================================
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

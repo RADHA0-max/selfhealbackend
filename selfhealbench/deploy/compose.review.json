@@ -1,0 +1,261 @@
+{
+  "name": "selfhealbench-pilot",
+  "services": {
+    "api": {
+      "restart": "no",
+      "environment": {
+        "BENCH_TOKEN": "${BENCH_TOKEN:?Set approved benchmark-only token}",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://otel:4318/v1/traces",
+        "SERVICE_NAME": "api",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "networks": [
+        "bench"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "ports": [
+        "127.0.0.1:18080:8080"
+      ],
+      "depends_on": [
+        "worker",
+        "auth"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/tmp"
+      ],
+      "pull_policy": "never",
+      "image": "selfhealbench-app:pilot-review"
+    },
+    "db": {
+      "restart": "no",
+      "environment": {
+        "BENCH_TOKEN": "${BENCH_TOKEN:?Set approved benchmark-only token}",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://otel:4318/v1/traces",
+        "SERVICE_NAME": "db",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "networks": [
+        "bench"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "ports": [
+        "127.0.0.1:18081:8080"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/tmp"
+      ],
+      "pull_policy": "never",
+      "image": "selfhealbench-app:pilot-review"
+    },
+    "worker": {
+      "restart": "no",
+      "environment": {
+        "BENCH_TOKEN": "${BENCH_TOKEN:?Set approved benchmark-only token}",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://otel:4318/v1/traces",
+        "SERVICE_NAME": "worker",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "networks": [
+        "bench"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "ports": [
+        "127.0.0.1:18082:8080"
+      ],
+      "depends_on": [
+        "db"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/tmp"
+      ],
+      "pull_policy": "never",
+      "image": "selfhealbench-app:pilot-review"
+    },
+    "auth": {
+      "restart": "no",
+      "environment": {
+        "BENCH_TOKEN": "${BENCH_TOKEN:?Set approved benchmark-only token}",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://otel:4318/v1/traces",
+        "SERVICE_NAME": "auth",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "networks": [
+        "bench"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "ports": [
+        "127.0.0.1:18083:8080"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/tmp"
+      ],
+      "pull_policy": "never",
+      "image": "selfhealbench-app:pilot-review"
+    },
+    "prometheus": {
+      "image": "prom/prometheus:v3.5.0",
+      "volumes": [
+        "../config/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      ],
+      "command": [
+        "--config.file=/etc/prometheus/prometheus.yml",
+        "--storage.tsdb.retention.time=1d"
+      ],
+      "ports": [
+        "127.0.0.1:19090:9090"
+      ],
+      "networks": [
+        "bench"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pull_policy": "never"
+    },
+    "loki": {
+      "image": "grafana/loki:3.5.3",
+      "command": [
+        "-config.file=/etc/loki/local-config.yaml"
+      ],
+      "ports": [
+        "127.0.0.1:13100:3100"
+      ],
+      "networks": [
+        "bench"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pull_policy": "never"
+    },
+    "otel": {
+      "image": "otel/opentelemetry-collector-contrib:0.129.0",
+      "command": [
+        "--config=/etc/otel/config.yaml"
+      ],
+      "volumes": [
+        "../config/otel.yml:/etc/otel/config.yaml:ro"
+      ],
+      "networks": [
+        "bench"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pull_policy": "never"
+    },
+    "tempo": {
+      "image": "grafana/tempo:2.8.1",
+      "command": [
+        "-config.file=/etc/tempo.yaml"
+      ],
+      "volumes": [
+        "../config/tempo.yml:/etc/tempo.yaml:ro"
+      ],
+      "ports": [
+        "127.0.0.1:13200:3200"
+      ],
+      "networks": [
+        "bench"
+      ],
+      "labels": {
+        "org.selfhealbench.scope": "isolated-pilot"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pull_policy": "never"
+    }
+  },
+  "networks": {
+    "bench": {
+      "external": true,
+      "name": "selfhealbench-pilot-review"
+    }
+  }
+}

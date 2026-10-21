@@ -1,0 +1,61 @@
+name: selfhealbench
+x-service-base: &service-base
+  build: ./app
+  restart: 'no'
+  environment: &service-env
+    BENCH_TOKEN: ${BENCH_TOKEN:-local-benchmark-only}
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel:4318/v1/traces
+  networks: [bench]
+  logging:
+    driver: json-file
+    options: {max-size: '10m', max-file: '3'}
+services:
+  api:
+    <<: *service-base
+    environment: {<<: *service-env, SERVICE_NAME: api}
+    ports: ['127.0.0.1:18080:8080']
+    depends_on: [worker, auth]
+  db:
+    <<: *service-base
+    environment: {<<: *service-env, SERVICE_NAME: db}
+    ports: ['127.0.0.1:18081:8080']
+  worker:
+    <<: *service-base
+    environment: {<<: *service-env, SERVICE_NAME: worker}
+    ports: ['127.0.0.1:18082:8080']
+    depends_on: [db]
+  auth:
+    <<: *service-base
+    environment: {<<: *service-env, SERVICE_NAME: auth}
+    ports: ['127.0.0.1:18083:8080']
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    volumes: ['./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro']
+    command: ['--config.file=/etc/prometheus/prometheus.yml','--storage.tsdb.retention.time=1d']
+    ports: ['127.0.0.1:19090:9090']
+    networks: [bench]
+  loki:
+    image: grafana/loki:3.5.3
+    command: ['-config.file=/etc/loki/local-config.yaml']
+    ports: ['127.0.0.1:13100:3100']
+    networks: [bench]
+  promtail:
+    image: grafana/promtail:3.5.1
+    volumes:
+      - './config/promtail.yml:/etc/promtail/config.yml:ro'
+      - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+    command: ['-config.file=/etc/promtail/config.yml']
+    networks: [bench]
+  otel:
+    image: otel/opentelemetry-collector-contrib:0.129.0
+    command: ['--config=/etc/otel/config.yaml']
+    volumes: ['./config/otel.yml:/etc/otel/config.yaml:ro']
+    networks: [bench]
+  tempo:
+    image: grafana/tempo:2.8.1
+    command: ['-config.file=/etc/tempo.yaml']
+    volumes: ['./config/tempo.yml:/etc/tempo.yaml:ro']
+    ports: ['127.0.0.1:13200:3200']
+    networks: [bench]
+networks:
+  bench: {internal: false}

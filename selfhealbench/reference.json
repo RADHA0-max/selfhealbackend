@@ -1,0 +1,21 @@
+{
+  "source": "/home/ollama/projects/hawker-clean/reference/SelfHealBench_Live_Pilot.zip",
+  "sha256": "4ed19708c851343611e7658c44d7261294bb3f6ccf440df6edd282dab5cdae0e",
+  "imported": [
+    "selfhealbench/scenarios/pilot.json"
+  ],
+  "note": "Original runner preserved as inert text only. Reviewed deployment uses an external network and preloaded images; default runner is safe replay.",
+  "prepared_reference_files": [
+    "app/Dockerfile",
+    "app/requirements.txt",
+    "app/service.py",
+    "config/tempo.yml",
+    "config/otel.yml",
+    "config/prometheus.yml"
+  ],
+  "inert_reference_copies": [
+    "reference/bench-run.py.txt",
+    "reference/docker-compose.yml.txt",
+    "reference/config-promtail.yml.txt"
+  ]
+}

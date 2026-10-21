@@ -1,0 +1,32 @@
+{
+  "status": "NOT APPROVED \u2014 NOT EXECUTED",
+  "project": "selfhealbench-pilot",
+  "network": "selfhealbench-pilot-review",
+  "candidate": "10.250.30.0/26",
+  "gateway": "10.250.30.1",
+  "ipv6": false,
+  "internal": true,
+  "docker_context": null,
+  "docker_endpoint": null,
+  "daemon_id": null,
+  "host_ports": {
+    "api": 18080,
+    "db": 18081,
+    "worker": 18082,
+    "auth": 18083,
+    "prometheus": 19090,
+    "loki": 13100,
+    "tempo": 13200
+  },
+  "bind_address": "127.0.0.1",
+  "allocation": "Dynamic container addresses within the explicitly approved /26; no static service addresses assigned.",
+  "approvals": {
+    "campus_allocation": false,
+    "network": false,
+    "ports": false,
+    "isolated_context": false,
+    "deployment": false,
+    "fault_injection": false,
+    "recovery": false
+  }
+}

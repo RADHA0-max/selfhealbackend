@@ -1,0 +1,12 @@
+[
+  {"id":"SHB-001","name":"DB HTTP error","target":"db","fault":"error","expected_root":"db","expected_action":"clear_fault","severity":"high"},
+  {"id":"SHB-002","name":"Auth HTTP error","target":"auth","fault":"error","expected_root":"auth","expected_action":"clear_fault","severity":"high"},
+  {"id":"SHB-003","name":"Worker HTTP error","target":"worker","fault":"error","expected_root":"worker","expected_action":"clear_fault","severity":"high"},
+  {"id":"SHB-004","name":"API HTTP error","target":"api","fault":"error","expected_root":"api","expected_action":"clear_fault","severity":"high"},
+  {"id":"SHB-005","name":"DB latency","target":"db","fault":"latency","delay_ms":2600,"expected_root":"db","expected_action":"clear_fault","severity":"medium"},
+  {"id":"SHB-006","name":"Auth latency","target":"auth","fault":"latency","delay_ms":2600,"expected_root":"auth","expected_action":"clear_fault","severity":"medium"},
+  {"id":"SHB-007","name":"Worker latency","target":"worker","fault":"latency","delay_ms":2600,"expected_root":"worker","expected_action":"clear_fault","severity":"medium"},
+  {"id":"SHB-008","name":"DB container stopped","target":"db","fault":"stop","expected_root":"db","expected_action":"start_container","severity":"critical"},
+  {"id":"SHB-009","name":"Auth container stopped","target":"auth","fault":"stop","expected_root":"auth","expected_action":"start_container","severity":"critical"},
+  {"id":"SHB-010","name":"Benign no-fault","target":"none","fault":"none","expected_root":"none","expected_action":"no_op","severity":"none"}
+]
