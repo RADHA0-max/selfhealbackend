@@ -110,7 +110,7 @@ export class TypeScriptRPCClient implements AgentQuery {
       repeat_penalty: input.repeat_penalty,
       format: input.format,
       stream: input.stream,
-      timeout: this.timeoutMs
+      timeout: this.timeoutMs,
     };
 
     // Validate request structure
@@ -119,7 +119,7 @@ export class TypeScriptRPCClient implements AgentQuery {
         type: 'error',
         requestId,
         error: 'Invalid request structure',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
 
@@ -131,7 +131,7 @@ export class TypeScriptRPCClient implements AgentQuery {
         type: 'error',
         requestId,
         error: `Failed to create broker directory: ${err.message}`,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
 
@@ -158,7 +158,7 @@ export class TypeScriptRPCClient implements AgentQuery {
         }
 
         // Wait 100ms before checking again
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       // Clean up request file
@@ -175,7 +175,7 @@ export class TypeScriptRPCClient implements AgentQuery {
           type: 'timeout',
           requestId,
           error: 'Request timeout waiting for broker response',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
 
@@ -185,7 +185,7 @@ export class TypeScriptRPCClient implements AgentQuery {
           type: 'error',
           requestId,
           error: `Response ID mismatch: expected ${requestId}, got ${response.request_id}`,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
 
@@ -195,7 +195,7 @@ export class TypeScriptRPCClient implements AgentQuery {
           type: 'error',
           requestId,
           error: response.error || 'Broker returned error',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
 
@@ -204,9 +204,8 @@ export class TypeScriptRPCClient implements AgentQuery {
         type: 'success',
         requestId,
         data: response.result,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       // Clean up request file on error
       try {
@@ -220,7 +219,7 @@ export class TypeScriptRPCClient implements AgentQuery {
         type: 'error',
         requestId,
         error: `RPC communication error: ${error.message}`,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
   }

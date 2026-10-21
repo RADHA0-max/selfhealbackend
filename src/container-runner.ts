@@ -1353,7 +1353,8 @@ export function composeSessionSpec(input: ComposeSessionSpecInput): SessionSpec 
     // The gateway's auxiliary containers ride beside the agent; capability-
     // gated in the spawn path before composition ever runs.
     containers: [agent, ...(gateway.containers ?? [])],
-    network: resolveProviderName(session.agent_provider, containerConfig.provider) === 'broker' ? 'none' : 'shared-private',
+    network:
+      resolveProviderName(session.agent_provider, containerConfig.provider) === 'broker' ? 'none' : 'shared-private',
     networkAccess: gateway.networkAccess,
     hardening: 'standard',
     resources: {
