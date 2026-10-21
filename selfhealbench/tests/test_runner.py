@@ -1,3 +1,4 @@
+from selfhealbench.bench.demo import MockBackend
 import json
 import unittest
 from unittest.mock import patch
@@ -59,10 +60,9 @@ class RunnerTests(unittest.TestCase):
         record.update(baseline_verified=True, injection_ok=True, fault_observed=True)
         self.assertEqual(summarize(self.scenarios, {"SHB-001": record}, mode="live")["recovery_success"], 0)
         history = {"recovered": True, "history": [
-            {"ok": True, "elapsed_seconds": n} for n in (0, 2, 4)]}
+            {"ok": True, "elapsed_seconds": n, "probes": MockBackend().probe()} for n in (0, 2, 4)]}
         record.update(baseline=history, verification=history, cleanup="verified",
-                      before={"evidence": {"probes": {s: {} for s in ("api", "db", "auth", "worker")},
-                                           "docker_logs": "healthy", "prometheus": {"up": 1}}})
+                      before=MockBackend().evidence())
         report = summarize(self.scenarios, {"SHB-001": record}, mode="live")
         self.assertEqual(report["recovery_success"], .1)
 
