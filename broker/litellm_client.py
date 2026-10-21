@@ -10,11 +10,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 from typing import Any, Dict, List, Optional
 
 import aiohttp
 from broker.config import BrokerConfig
-from broker.protocol import RPCRequest, RPCResponse, make_response
+from broker.protocol import RPCRequest, RPCResponse, make_response, unique_fields, MAX_RESPONSE_BYTES
 
 
 logger = logging.getLogger(__name__)
@@ -80,14 +81,20 @@ class LiteLLMClient:
                 endpoint,
                 json=payload,
                 headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+                allow_redirects=False,
             ) as response:
                 if response.status != 200:
-                    content = await response.text()
-                    raise aiohttp.ClientError(
-                        f"LiteLLM returned status {response.status}: {content}"
-                    )
+                    raise aiohttp.ClientError("backend unavailable")
 
-                response_data = await response.json()
+                raw = bytearray()
+                async for chunk in response.content.iter_chunked(8192):
+                    raw.extend(chunk)
+                    if len(raw) > MAX_RESPONSE_BYTES:
+                        raise ValueError("backend response too large")
+                response_data = json.loads(raw, object_pairs_hook=unique_fields)
+                if not isinstance(response_data, dict):
+                    raise ValueError("invalid backend response")
 
                 # Extract content from the response
                 content = ""
@@ -105,7 +112,13 @@ class LiteLLMClient:
                         elif "delta" in choice and "content" in choice["delta"]:
                             content = choice["delta"]["content"]
 
-                logger.info(f"LiteLLM response for request {request.request_id}: {content[:100] if content else embedding[:5] if embedding else '...'}")
+                if request.model == "embed":
+                    if not isinstance(embedding, list) or not embedding or any(
+                            type(x) not in (int, float) or not math.isfinite(x) for x in embedding):
+                        raise ValueError("invalid embedding")
+                elif not isinstance(content, str) or not content.strip():
+                    raise ValueError("missing model content")
+                logger.info("LiteLLM response received")
 
                 return make_response(
                     request_id=request.request_id,
@@ -114,8 +127,8 @@ class LiteLLMClient:
                 )
 
         except Exception as e:
-            logger.error(f"Error calling LiteLLM: {e}")
+            logger.error("LiteLLM call failed (%s)", type(e).__name__)
             return make_response(
                 request_id=request.request_id,
-                error=str(e),
+                error="inference timeout" if isinstance(e, asyncio.TimeoutError) else "inference backend failed",
             )

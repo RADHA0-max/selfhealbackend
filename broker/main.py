@@ -85,6 +85,8 @@ class Broker:
         for req_file in request_files[:self.config.max_queue_size]:
             try:
                 # Read and parse the request
+                if req_file.is_symlink():
+                    raise ValueError("symlink requests prohibited")
                 with req_file.open("rb") as request_handle:
                     raw_request = request_handle.read(MAX_REQUEST_BYTES + 1)
                 if len(raw_request) > MAX_REQUEST_BYTES:
@@ -92,11 +94,19 @@ class Broker:
 
                 request = parse_request(raw_request)
 
+                # Both existing clients use either id.json or req-id.json naming.
+                if req_file.stem not in (request.request_id, "req-" + request.request_id):
+                    raise ValueError("request filename and ID differ")
+                if (out_dir / f"resp-{request.request_id}.json").exists():
+                    raise ValueError("response already exists; duplicate inference blocked")
+
                 # Check if this request is allowed based on budgets
                 if not self.budget_tracker.can_request(request.model, "default"):
                     logger.warning(
                         f"Budget exceeded for model {request.model}, deferring request"
                     )
+                    (out_dir / f"resp-{request.request_id}.json").write_bytes(
+                        make_response(request.request_id, error="model budget exhausted"))
                     # Move to failed directory for later processing
                     failed_file = failed_dir / req_file.name
                     shutil.move(str(req_file), str(failed_file))
@@ -135,7 +145,7 @@ class Broker:
                     self.budget_tracker.release_request(request.model, "default")
 
             except Exception as e:
-                logger.error(f"Failed to process request {req_file.name}: {e}")
+                logger.error("Request rejected (%s)", type(e).__name__)
                 # Move to failed directory
                 failed_file = failed_dir / req_file.name
                 shutil.move(str(req_file), str(failed_file))

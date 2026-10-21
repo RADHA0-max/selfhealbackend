@@ -14,7 +14,7 @@ def approved_config():
             ("campus_allocation", "network", "ports", "isolated_context",
              "deployment", "fault_injection", "recovery")},
             "operator": "unit-test-only", "docker_context": "test-isolated",
-            "docker_endpoint": "unix:///tmp/test-only-docker.sock", "daemon_id": "test-daemon",
+            "docker_endpoint": "unix:///tmp/test-only-docker.sock", "daemon_id": "test-daemon", "shared_daemon_id": "fixture-shared-daemon",
             "project": "selfhealbench-pilot", "network": "selfhealbench-pilot-review",
             "approved_scenarios": ["SHB-001", "SHB-010"],
             "bind_address": "127.0.0.1", "ipv6": False, "internal": True,
@@ -57,6 +57,12 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(report["recovery_success"], 0)
         self.assertEqual(report["latencies"]["recovery_seconds"]["observations"], 0)
         record.update(baseline_verified=True, injection_ok=True, fault_observed=True)
+        self.assertEqual(summarize(self.scenarios, {"SHB-001": record}, mode="live")["recovery_success"], 0)
+        history = {"recovered": True, "history": [
+            {"ok": True, "elapsed_seconds": n} for n in (0, 2, 4)]}
+        record.update(baseline=history, verification=history, cleanup="verified",
+                      before={"evidence": {"probes": {s: {} for s in ("api", "db", "auth", "worker")},
+                                           "docker_logs": "healthy", "prometheus": {"up": 1}}})
         report = summarize(self.scenarios, {"SHB-001": record}, mode="live")
         self.assertEqual(report["recovery_success"], .1)
 

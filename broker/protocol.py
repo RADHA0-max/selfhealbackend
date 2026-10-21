@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 import json
 import uuid
+import re
 
 
 MAX_REQUEST_BYTES = 64 * 1024
@@ -42,12 +43,21 @@ def new_request_id() -> str:
     return uuid.uuid4().hex
 
 
+def unique_fields(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON field")
+        result[key] = value
+    return result
+
+
 def parse_request(raw: bytes) -> RPCRequest:
     if len(raw) > MAX_REQUEST_BYTES:
         raise ValueError("request exceeds 64 KiB limit")
 
     try:
-        data = json.loads(raw)
+        data = json.loads(raw, object_pairs_hook=unique_fields)
     except json.JSONDecodeError as exc:
         raise ValueError("invalid JSON") from exc
 
@@ -67,7 +77,7 @@ def parse_request(raw: bytes) -> RPCRequest:
     request_id = data.get("request_id")
     model = data.get("model")
 
-    if not isinstance(request_id, str) or not request_id:
+    if not isinstance(request_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", request_id):
         raise ValueError("request_id must be a non-empty string")
 
     if not isinstance(model, str) or model not in ALLOWED_MODELS:
@@ -79,6 +89,8 @@ def parse_request(raw: bytes) -> RPCRequest:
     if model == "embed":
         if not isinstance(input_value, (str, list)):
             raise ValueError("embed requires string or list input")
+        if isinstance(input_value, list) and (not input_value or any(not isinstance(x, str) for x in input_value)):
+            raise ValueError("embed list must contain strings")
         messages = None
     else:
         if not isinstance(messages, list) or not messages:

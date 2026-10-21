@@ -4,6 +4,7 @@ No deployment or network creation capability. A separate approved daemon and
 pre-deployed, labelled benchmark containers are mandatory.
 """
 import json
+import os
 import datetime
 import re
 import subprocess
@@ -38,6 +39,11 @@ def validate_approvals(config):
     if not endpoint.startswith("unix:///") or endpoint in (
             "unix:///var/run/docker.sock", "unix:///run/docker.sock"):
         raise ValueError("approved separate local daemon socket required")
+    if os.path.realpath(endpoint[len("unix://"):]) in ("/run/docker.sock", "/var/run/docker.sock"):
+        raise ValueError("shared socket alias prohibited")
+    shared_id = config.get("shared_daemon_id")
+    if not isinstance(shared_id, str) or not shared_id.strip() or shared_id == config.get("daemon_id"):
+        raise ValueError("independently observed distinct shared daemon identity required")
     if not config.get("daemon_id") or config.get("project") != "selfhealbench-pilot":
         raise ValueError("exact daemon identity and reserved benchmark project required")
     if config.get("network") != "selfhealbench-pilot-review":
@@ -144,9 +150,16 @@ class IsolatedBackend:
         self._environment()
         self.ids = {service: self._container(service) for service in SERVICES}
 
+    def require_recovery_router(self):
+        # The trusted Router only executes scale_service. Benchmark start/clear
+        # actions have no authorized adapter; never inject a fault we cannot
+        # safely route and reconcile. Approval booleans cannot override this.
+        raise ValueError("benchmark recovery Router integration is unavailable")
+
     def authorize_scenarios(self, scenarios):
         if any(s["id"] not in self.config["approved_scenarios"] for s in scenarios):
             raise ValueError("requested campaign exceeds approved scenario scope")
+        self.require_recovery_router()
 
     def _http(self, service, path, payload=None, timeout=3, text_response=False):
         port = self.config["host_ports"][service]
@@ -214,6 +227,7 @@ class IsolatedBackend:
             raise RuntimeError("benchmark control endpoint failed")
 
     def inject(self, scenario):
+        self.require_recovery_router()
         self.assert_ready()
         service, fault = scenario["target"], scenario["fault"]
         if fault == "none" and service == "none":
@@ -234,6 +248,7 @@ class IsolatedBackend:
         validate(plan)
         if plan["action"] in ("no_op", "escalate"):
             return {"executed": False, "action": plan["action"]}
+        self.require_recovery_router()
         self.assert_ready()
         if plan["action"] == "start_container":
             self._docker("start", self.ids[plan["target"]])
@@ -242,6 +257,7 @@ class IsolatedBackend:
         return {"executed": True, "action": plan["action"], "target": plan["target"]}
 
     def cleanup(self):
+        self.require_recovery_router()
         # Cleanup is itself recovery and uses the same independent approval gate.
         self.assert_ready()
         for service in sorted(SERVICES):
@@ -289,6 +305,11 @@ def run_live(scenarios, agent, backend, checkpoint=None):
             finally:
                 record["planning_seconds"] = time.monotonic() - started
             record["plan"] = plan
+            if collected.get("collection_errors"):
+                raise ValueError("incomplete diagnostic telemetry")
+            if plan["action"] in ("clear_fault", "start_container"):
+                if scenario["fault"] == "none" or healthy(collected["evidence"]["probes"]):
+                    raise ValueError("recovery on healthy control prohibited")
             cleanup_required = cleanup_required or plan["action"] in ("clear_fault", "start_container")
             record["execution"] = backend.execute(plan)
             verification = backend.verify()
