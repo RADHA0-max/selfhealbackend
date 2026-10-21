@@ -1,3 +1,4 @@
+from selfhealbench.bench.demo import MockBackend
 import copy
 import unittest
 from unittest.mock import Mock, patch
@@ -28,7 +29,8 @@ class SafetyRegressions(unittest.TestCase):
         plan = dict(root_cause='db', target='db', action='clear_fault', reason='fixture')
         with patch.object(backend, '_docker') as docker, patch.object(backend, '_http') as http:
             for operation in (lambda: backend.authorize_scenarios([scenario]),
-                              lambda: backend.inject(scenario), lambda: backend.execute(plan), backend.cleanup):
+                              lambda: backend.inject(scenario), lambda: backend.execute(plan),
+                              lambda: backend._control('db', 'none'), backend.cleanup):
                 with self.assertRaisesRegex(ValueError, 'Router integration'):
                     operation()
             docker.assert_not_called()
@@ -49,7 +51,7 @@ class SafetyRegressions(unittest.TestCase):
         self.assertEqual(result['invalid_decisions'], 1)
 
     def test_verification_history_must_be_consecutive_and_within_deadline(self):
-        valid = {'recovered': True, 'history': [{'ok': True, 'elapsed_seconds': n} for n in (0, 2, 4)]}
+        valid = {'recovered': True, 'history': [{'ok': True, 'elapsed_seconds': n, 'probes': MockBackend().probe()} for n in (0, 2, 4)]}
         self.assertTrue(verified_history(valid))
         for mutate in (lambda v: v['history'].pop(),
                        lambda v: v['history'][1].update(ok=False),
@@ -60,12 +62,11 @@ class SafetyRegressions(unittest.TestCase):
 
     def test_cleanup_and_telemetry_required_for_recovery_score(self):
         scenario = load_scenarios()[0]
-        history = {'recovered': True, 'history': [{'ok': True, 'elapsed_seconds': n} for n in (0, 2, 4)]}
+        history = {'recovered': True, 'history': [{'ok': True, 'elapsed_seconds': n, 'probes': MockBackend().probe()} for n in (0, 2, 4)]}
         record = dict(status='ok', baseline_verified=True, injection_ok=True, fault_observed=True,
                       recovery_verified=True, baseline=history, verification=history, cleanup='verified',
                       plan=dict(root_cause='db', target='db', action='clear_fault', reason='fixture'),
-                      before={'evidence': {'probes': {s: {} for s in ('api','db','worker','auth')},
-                                           'docker_logs': 'fixture', 'prometheus': {'up': 1}}})
+                      before=MockBackend().evidence())
         self.assertEqual(summarize([scenario], {scenario['id']: record}, 'live')['recovery_success'], 1)
         for mutate in (lambda r: r.pop('cleanup'), lambda r: r.update(cleanup='failed'),
                        lambda r: r['before'].update(collection_errors=['tempo']),

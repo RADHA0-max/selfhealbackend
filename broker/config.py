@@ -76,6 +76,7 @@ class BrokerConfig:
     deep_global_per_hour: int
 
     max_deep_coder_concurrency: int
+    rpc_state_dir: str | None = None
 
 
 def load_config() -> BrokerConfig:
@@ -95,4 +96,5 @@ def load_config() -> BrokerConfig:
         coder_per_target_per_hour=CODER_PER_TARGET_PER_HOUR,
         deep_global_per_hour=DEEP_GLOBAL_PER_HOUR,
         max_deep_coder_concurrency=MAX_DEEP_CODER_CONCURRENCY,
+        rpc_state_dir=os.environ.get("RPC_STATE_DIR"),
     )

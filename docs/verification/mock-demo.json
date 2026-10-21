@@ -1,0 +1,1459 @@
+{
+  "mode": "mock_demonstration",
+  "requested": 10,
+  "attempted": 10,
+  "skipped": 0,
+  "evidence_completeness": {
+    "complete": 10,
+    "requested": 10
+  },
+  "telemetry_failures": 0,
+  "completed": 10,
+  "missing_scenarios": [],
+  "invalid_decisions": 0,
+  "timeouts": 0,
+  "failures": 0,
+  "scores": {
+    "rca_correct": 1.0,
+    "target_correct": 1.0,
+    "action_correct": 1.0
+  },
+  "unnecessary_intervention": {
+    "count": 0,
+    "benign_requested": 1,
+    "rate": 0.0,
+    "unknown": 0
+  },
+  "latencies": {
+    "planning_seconds": {
+      "observations": 10,
+      "mean": 5.546631291508674e-06
+    },
+    "recovery_seconds": {
+      "observations": 10,
+      "mean": 4.7877291217446326e-05
+    },
+    "agent_to_recovery_seconds": {
+      "observations": 10,
+      "mean": 3.543198108673096e-05
+    }
+  },
+  "results": [
+    {
+      "scenario_id": "SHB-001",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 8.677132427692413e-06,
+      "recovery_seconds": 7.775705307722092e-05,
+      "agent_to_recovery_seconds": 4.0085986256599426e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-002",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 5.680834874510765e-06,
+      "recovery_seconds": 4.7067878767848015e-05,
+      "agent_to_recovery_seconds": 3.667897544801235e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-003",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 5.139969289302826e-06,
+      "recovery_seconds": 4.4994056224823e-05,
+      "agent_to_recovery_seconds": 3.4905970096588135e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "worker",
+        "target": "worker",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-004",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 4.6691857278347015e-06,
+      "recovery_seconds": 4.605692811310291e-05,
+      "agent_to_recovery_seconds": 3.577815368771553e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "api",
+        "target": "api",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-005",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 4.959059879183769e-06,
+      "recovery_seconds": 4.342198371887207e-05,
+      "agent_to_recovery_seconds": 3.412389196455479e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-006",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 4.898989573121071e-06,
+      "recovery_seconds": 4.4113025069236755e-05,
+      "agent_to_recovery_seconds": 3.498583100736141e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-007",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 4.949048161506653e-06,
+      "recovery_seconds": 4.64380718767643e-05,
+      "agent_to_recovery_seconds": 3.671995364129543e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "worker",
+        "target": "worker",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-008",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 6.292015314102173e-06,
+      "recovery_seconds": 4.213000647723675e-05,
+      "agent_to_recovery_seconds": 3.4395139664411545e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "start_container",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-009",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 4.879198968410492e-06,
+      "recovery_seconds": 4.429393447935581e-05,
+      "agent_to_recovery_seconds": 3.447500057518482e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "start_container",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "simulated_recovery_success": true
+    },
+    {
+      "scenario_id": "SHB-010",
+      "status": "ok",
+      "rca_correct": true,
+      "target_correct": true,
+      "action_correct": true,
+      "unnecessary_intervention": false,
+      "planning_seconds": 5.320878699421883e-06,
+      "recovery_seconds": 4.2499974370002747e-05,
+      "agent_to_recovery_seconds": 3.217090852558613e-05,
+      "evidence_complete": true,
+      "telemetry_failures": 0,
+      "plan": {
+        "root_cause": "none",
+        "target": "none",
+        "action": "no_op",
+        "reason": "synthetic healthy control"
+      },
+      "simulated_recovery_success": true
+    }
+  ],
+  "denominator_note": "All requested cases remain in accuracy and live recovery denominators.",
+  "records": {
+    "SHB-001": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816126+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 503,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 8.677132427692413e-06,
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 7.775705307722092e-05,
+      "agent_to_recovery_seconds": 4.0085986256599426e-05,
+      "cleanup": "verified"
+    },
+    "SHB-002": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816247+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 503,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 5.680834874510765e-06,
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.7067878767848015e-05,
+      "agent_to_recovery_seconds": 3.667897544801235e-05,
+      "cleanup": "verified"
+    },
+    "SHB-003": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816339+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 503,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 5.139969289302826e-06,
+      "plan": {
+        "root_cause": "worker",
+        "target": "worker",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.4994056224823e-05,
+      "agent_to_recovery_seconds": 3.4905970096588135e-05,
+      "cleanup": "verified"
+    },
+    "SHB-004": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816429+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 503,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 4.6691857278347015e-06,
+      "plan": {
+        "root_cause": "api",
+        "target": "api",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.605692811310291e-05,
+      "agent_to_recovery_seconds": 3.577815368771553e-05,
+      "cleanup": "verified"
+    },
+    "SHB-005": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816519+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 2600
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 4.959059879183769e-06,
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.342198371887207e-05,
+      "agent_to_recovery_seconds": 3.412389196455479e-05,
+      "cleanup": "verified"
+    },
+    "SHB-006": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816606+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 2600
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 4.898989573121071e-06,
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.4113025069236755e-05,
+      "agent_to_recovery_seconds": 3.498583100736141e-05,
+      "cleanup": "verified"
+    },
+    "SHB-007": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816694+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 2600
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 4.949048161506653e-06,
+      "plan": {
+        "root_cause": "worker",
+        "target": "worker",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.64380718767643e-05,
+      "agent_to_recovery_seconds": 3.671995364129543e-05,
+      "cleanup": "verified"
+    },
+    "SHB-008": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816784+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 0,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 6.292015314102173e-06,
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "start_container",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.213000647723675e-05,
+      "agent_to_recovery_seconds": 3.4395139664411545e-05,
+      "cleanup": "verified"
+    },
+    "SHB-009": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816870+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 0,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": true,
+      "planning_seconds": 4.879198968410492e-06,
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "start_container",
+        "reason": "scripted diagnosis of synthetic probe"
+      },
+      "execution": {
+        "executed": true,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.429393447935581e-05,
+      "agent_to_recovery_seconds": 3.447500057518482e-05,
+      "cleanup": "verified"
+    },
+    "SHB-010": {
+      "status": "ok",
+      "baseline_verified": true,
+      "injection_ok": true,
+      "recovery_verified": true,
+      "telemetry_readiness": {
+        "mock": true
+      },
+      "baseline": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "fault_onset_at": "2026-10-21T17:39:39.816959+00:00",
+      "before": {
+        "evidence": {
+          "probes": {
+            "db": {
+              "status": 200,
+              "body": {
+                "service": "db",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "auth": {
+              "status": 200,
+              "body": {
+                "service": "auth",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "worker": {
+              "status": 200,
+              "body": {
+                "service": "worker",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            },
+            "api": {
+              "status": 200,
+              "body": {
+                "service": "api",
+                "status": "ok"
+              },
+              "latency_ms": 1
+            }
+          },
+          "docker_logs": "synthetic service observations",
+          "prometheus": {
+            "mock": true
+          }
+        },
+        "collection_errors": []
+      },
+      "fault_observed": false,
+      "planning_seconds": 5.320878699421883e-06,
+      "plan": {
+        "root_cause": "none",
+        "target": "none",
+        "action": "no_op",
+        "reason": "synthetic healthy control"
+      },
+      "execution": {
+        "executed": false,
+        "mock": true
+      },
+      "verification": {
+        "recovered": true,
+        "history": [
+          {
+            "ok": true,
+            "elapsed_seconds": 0
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 2
+          },
+          {
+            "ok": true,
+            "elapsed_seconds": 4
+          }
+        ]
+      },
+      "recovery_seconds": 4.2499974370002747e-05,
+      "agent_to_recovery_seconds": 3.217090852558613e-05
+    }
+  },
+  "simulated_recovery_success": 1.0,
+  "live_recovery_success": null,
+  "audit": [
+    {
+      "event": "mock_scope",
+      "scenarios": [
+        "SHB-001",
+        "SHB-002",
+        "SHB-003",
+        "SHB-004",
+        "SHB-005",
+        "SHB-006",
+        "SHB-007",
+        "SHB-008",
+        "SHB-009",
+        "SHB-010"
+      ]
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-001"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-002"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-003"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "worker",
+        "target": "worker",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-004"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "api",
+        "target": "api",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-005"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-006"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-007"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "worker",
+        "target": "worker",
+        "action": "clear_fault",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-008"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "db",
+        "target": "db",
+        "action": "start_container",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-009"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "auth",
+        "target": "auth",
+        "action": "start_container",
+        "reason": "scripted diagnosis of synthetic probe"
+      }
+    },
+    {
+      "event": "mock_cleanup_verified"
+    },
+    {
+      "event": "synthetic_fault",
+      "id": "SHB-010"
+    },
+    {
+      "event": "mock_execution",
+      "plan": {
+        "root_cause": "none",
+        "target": "none",
+        "action": "no_op",
+        "reason": "synthetic healthy control"
+      }
+    }
+  ],
+  "pending_live_scenarios": [
+    "SHB-001",
+    "SHB-002",
+    "SHB-003",
+    "SHB-004",
+    "SHB-005",
+    "SHB-006",
+    "SHB-007",
+    "SHB-008",
+    "SHB-009",
+    "SHB-010"
+  ],
+  "limitations": [
+    "All evidence, diagnoses, execution and elapsed probe times are synthetic.",
+    "Benchmark actions have no trusted Router adapter; live campaigns are blocked.",
+    "Use the integration test for real provider/file-RPC plumbing with mocked HTTP.",
+    "Use Router tests for trusted authorization and durable audit with an in-memory adapter."
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "captured_at": "2026-10-21T17:34:47.970136+00:00",
+  "host": "dada",
+  "docker_context": "default",
+  "daemon": {
+    "name": "dada",
+    "id": "f531d43d-0408-40b0-aa84-0e5a86ecc941"
+  },
+  "shared_daemon": true,
+  "other_contexts_observed": [],
+  "isolated_context_available": null,
+  "complete": {
+    "host": true,
+    "routes": true,
+    "rules": true,
+    "docker": true,
+    "vpn": true
+  },
+  "host_cidrs": [
+    "10.250.10.0/26",
+    "10.250.20.0/26",
+    "127.0.0.0/8",
+    "172.16.40.0/22",
+    "172.17.0.0/16",
+    "172.20.0.0/16"
+  ],
+  "route_cidrs": [
+    "10.250.10.0/26",
+    "10.250.10.0/32",
+    "10.250.10.1/32",
+    "10.250.10.63/32",
+    "10.250.20.0/26",
+    "10.250.20.0/32",
+    "10.250.20.1/32",
+    "10.250.20.63/32",
+    "127.0.0.0/32",
+    "127.0.0.0/8",
+    "127.0.0.1/32",
+    "127.255.255.255/32",
+    "172.16.40.0/22",
+    "172.16.40.0/32",
+    "172.16.40.56/32",
+    "172.16.43.255/32",
+    "172.17.0.0/16",
+    "172.17.0.0/32",
+    "172.17.0.1/32",
+    "172.17.255.255/32",
+    "172.20.0.0/16",
+    "172.20.0.0/32",
+    "172.20.0.1/32",
+    "172.20.255.255/32"
+  ],
+  "docker_cidrs": [
+    "10.250.10.0/26",
+    "10.250.20.0/26",
+    "172.17.0.0/16",
+    "172.20.0.0/16"
+  ],
+  "vpn_cidrs": [],
+  "institutional_cidrs": [],
+  "campus_allocation": {
+    "confirmed": false,
+    "authority": null,
+    "candidate": null
+  },
+  "scope_note": "VPN completeness covers visible local interfaces/routes only. Campus/VPN allocations remain unconfirmed.",
+  "default_route_note": "Default routes retained in observations; not treated as allocated CIDRs.",
+  "errors": {}
+}

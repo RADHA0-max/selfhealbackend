@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from integration.nanoclaw_adapter import NanoClawBenchAdapter
+from selfhealbench.bench.telemetry import probe_snapshot
 
 SERVICES = frozenset(('api', 'db', 'worker', 'auth'))
 ACTIONS = frozenset(('clear_fault', 'start_container', 'no_op', 'escalate'))
@@ -148,13 +149,14 @@ def verify(probe, timeout=20, interval=2, required=3, clock=time.monotonic, slee
     deadline, streak, history = started + timeout, 0, []
     while clock() < deadline:
         try:
-            ok = healthy(probe())
+            snapshot = probe_snapshot(probe())
+            ok = healthy(snapshot)
         except Exception:
-            ok = False
+            snapshot, ok = {}, False
         # A response arriving after the deadline cannot establish recovery.
         if clock() >= deadline:
             break
-        history.append({'ok': ok, 'elapsed_seconds': clock() - started})
+        history.append({'ok': ok, 'elapsed_seconds': clock() - started, 'probes': snapshot})
         streak = streak + 1 if ok else 0
         if streak >= required:
             return {'recovered': True, 'history': history}

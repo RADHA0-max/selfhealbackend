@@ -18,6 +18,7 @@ from selfhealbench.bench.agents import NoRedirect
 from selfhealbench.bench.network_safety import review
 from selfhealbench.bench.pilot import SERVICES, healthy, prepare_evidence, validate, verify
 from selfhealbench.bench.scoring import summarize
+from selfhealbench.bench.telemetry import prometheus_up, tempo_search
 
 APPROVALS = ("campus_allocation", "network", "ports", "isolated_context",
              "deployment", "fault_injection", "recovery")
@@ -201,26 +202,35 @@ class IsolatedBackend:
         self.assert_ready()
         logs = []
         for service in sorted(SERVICES):
-            logs.append(self._docker("logs", "--tail", "60", self.ids[service]))
+            logs.append(self._docker("logs", "--since", "30s", "--tail", "60", self.ids[service]))
         queries = {"up": 'up{job="selfheal-services"}'}
         metrics = {}
         errors = []
         for key, query in queries.items():
             try:
-                metrics[key] = self._http("prometheus", "/api/v1/query?" +
-                                          urllib.parse.urlencode({"query": query}), timeout=4)["body"]
+                response = self._http("prometheus", "/api/v1/query?" +
+                                      urllib.parse.urlencode({"query": query}), timeout=4)
+                if response["status"] != 200:
+                    raise ValueError("prometheus HTTP failure")
+                prometheus_up(response["body"], time.time())
+                metrics[key] = response["body"]
             except Exception:
                 errors.append("prometheus:" + key)
         try:
-            traces = self._http("tempo", "/api/search?limit=20", timeout=4)["body"]
+            response = self._http("tempo", "/api/search?limit=20", timeout=4)
+            if response["status"] != 200:
+                raise ValueError("tempo HTTP failure")
+            tempo_search(response["body"], time.time())
+            traces = response["body"]
         except Exception:
             errors.append("tempo:search")
             traces = {"unavailable": True}
         return {"evidence": prepare_evidence({"probes": self.probe(),
                 "docker_logs": "\n".join(logs), "prometheus": metrics}, (self.token,)),
-                "collection_errors": errors, "tempo_search": traces}
+                "collection_errors": errors, "tempo_search": traces, "collected_at": time.time()}
 
     def _control(self, service, mode, delay=0):
+        self.require_recovery_router()
         self.assert_ready()
         result = self._http(service, "/__bench/fault", {"mode": mode, "delay_ms": delay})
         if result["status"] != 200:

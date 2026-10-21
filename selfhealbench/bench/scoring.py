@@ -1,7 +1,8 @@
 """Score every requested scenario, including missing and failed runs."""
 import math
 
-from selfhealbench.bench.pilot import validate
+from selfhealbench.bench.pilot import validate, healthy
+from selfhealbench.bench.telemetry import complete_evidence, error_rate_verified
 
 
 def verified_history(value):
@@ -17,8 +18,12 @@ def verified_history(value):
         elapsed = sample.get("elapsed_seconds")
         if type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0 or elapsed <= previous or elapsed >= 20:
             return False
+        if type(sample.get("ok")) is not bool or sample["ok"] != healthy(sample.get("probes")):
+            return False
         previous = elapsed
-    return all(sample.get("ok") is True for sample in history[-3:])
+    return (all(sample.get("ok") is True for sample in history[-3:])
+            and all(b["elapsed_seconds"] - a["elapsed_seconds"] >= 2
+                    for a, b in zip(history[-3:], history[-2:])))
 
 
 def summarize(scenarios, records, mode="offline_replay"):
@@ -33,13 +38,12 @@ def summarize(scenarios, records, mode="offline_replay"):
                "recovery_seconds": None, "agent_to_recovery_seconds": None,
                "evidence_complete": False, "telemetry_failures": 0}
         if record is not None:
+            if not isinstance(record, dict):
+                record = {"status": "invalid_decision"}
             before = record.get("before", {})
-            evidence = before.get("evidence", {}) if isinstance(before, dict) else {}
-            row["evidence_complete"] = (set(evidence.get("probes", {})) == {"api", "db", "worker", "auth"}
-                                        and bool(evidence.get("docker_logs"))
-                                        and bool(evidence.get("prometheus"))
-                                        and not before.get("collection_errors"))
-            row["telemetry_failures"] = len(before.get("collection_errors", [])) if isinstance(before, dict) else 0
+            row["evidence_complete"] = complete_evidence(before)
+            errors = before.get("collection_errors", []) if isinstance(before, dict) else []
+            row["telemetry_failures"] = len(errors) if isinstance(errors, list) else 1
             row["status"] = record.get("status", "invalid_decision")
             try:
                 plan = validate(record.get("plan"))
@@ -67,7 +71,8 @@ def summarize(scenarios, records, mode="offline_replay"):
                                            and (record.get("cleanup") == "verified"
                                                 if scenario["fault"] != "none"
                                                 else plan["action"] == "no_op")
-                                           and record.get("rollback") not in ("failed", "required"))
+                                           and record.get("rollback") not in ("failed", "required")
+                                           and ("error_rate" not in record or error_rate_verified(record["error_rate"])))
             for name in ("planning_seconds", "recovery_seconds", "agent_to_recovery_seconds"):
                 value = record.get(name)
                 if type(value) in (int, float) and math.isfinite(value) and value >= 0:

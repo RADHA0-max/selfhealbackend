@@ -9,23 +9,20 @@ and the LiteLLM inference gateway, enforcing all security and budget constraints
 from __future__ import annotations
 
 import asyncio
-import shutil
-import json
 import logging
 import os
-import time
+import uuid
+import itertools
 from pathlib import Path
-from typing import Dict, List
 
+from broker.durability import Journal, publish, read_request, sync_directory
 from broker.budget import BudgetTracker
 from broker.config import load_config
 from broker.litellm_client import LiteLLMClient
 from broker.protocol import (
-    MAX_REQUEST_BYTES,
     RPCRequest,
     parse_request,
     make_response,
-    new_request_id,
 )
 
 
@@ -73,82 +70,82 @@ class Broker:
         self._running = False
 
     async def _process_requests(self) -> None:
-        """Process all pending requests in the input directory."""
+        # Only one process may own a queue batch. A crash leaves durable claims;
+        # acquiring this lock later does not authorize repeating inference.
+        state = getattr(self.config, "rpc_state_dir", None) or str(
+            Path(self.config.rpc_failed_dir) / ".broker-state")
+        try:
+            with Journal(state) as journal:
+                await self._process_owned_requests(journal)
+        except BlockingIOError:
+            return  # another broker owns this batch
+
+    async def _process_owned_requests(self, journal) -> None:
         in_dir = Path(self.config.rpc_in_dir)
         out_dir = Path(self.config.rpc_out_dir)
         failed_dir = Path(self.config.rpc_failed_dir)
-
-        # Get all request files
-        request_files = list(in_dir.glob("req-*.json"))
-
-        # Process up to the queue limit
-        for req_file in request_files[:self.config.max_queue_size]:
+        # Memory bounded by the batch limit, unlike list(glob(...)). Producer-side
+        # disk admission/quotas still require a separate deployment contract.
+        request_files = list(itertools.islice(in_dir.glob("req-*.json"), self.config.max_queue_size))
+        for req_file in request_files:
+            claimed_file = journal.directory / ("pending-" + uuid.uuid4().hex)
+            identity = None
+            reserved = False
+            request = None
             try:
-                # Read and parse the request
-                if req_file.is_symlink():
-                    raise ValueError("symlink requests prohibited")
-                with req_file.open("rb") as request_handle:
-                    raw_request = request_handle.read(MAX_REQUEST_BYTES + 1)
-                if len(raw_request) > MAX_REQUEST_BYTES:
-                    raise ValueError("request exceeds 64 KiB limit")
-
-                request = parse_request(raw_request)
-
-                # Both existing clients use either id.json or req-id.json naming.
-                if req_file.stem not in (request.request_id, "req-" + request.request_id):
+                # Take the directory entry out of the producer namespace first.
+                # Open the moved inode with O_NOFOLLOW/O_NONBLOCK, then fstat.
+                req_file.rename(claimed_file)
+                sync_directory(in_dir)
+                sync_directory(journal.directory)
+                raw = read_request(claimed_file)
+                request = parse_request(raw)
+                identity = request.request_id
+                if req_file.stem not in (identity, "req-" + identity):
                     raise ValueError("request filename and ID differ")
-                if (out_dir / f"resp-{request.request_id}.json").exists():
-                    raise ValueError("response already exists; duplicate inference blocked")
-
-                # Check if this request is allowed based on budgets
-                if not self.budget_tracker.can_request(request.model, "default"):
-                    logger.warning(
-                        f"Budget exceeded for model {request.model}, deferring request"
-                    )
-                    (out_dir / f"resp-{request.request_id}.json").write_bytes(
-                        make_response(request.request_id, error="model budget exhausted"))
-                    # Move to failed directory for later processing
-                    failed_file = failed_dir / req_file.name
-                    shutil.move(str(req_file), str(failed_file))
-                    continue
-
-                # Record the request in budget tracker
-                self.budget_tracker.record_request(request.model, "default")
-
-                try:
-                    # Initialize LiteLLM client if not already done
+                outcome, cached = journal.claim(identity, raw)
+                response_file = out_dir / f"resp-{identity}.json"
+                if outcome == "CONFLICT":
+                    raise ValueError("request ID reused with different payload")
+                if os.path.lexists(response_file):
+                    journal.uncertain(identity)
+                    raise ValueError("response already exists")
+                if outcome == "COMPLETE":
+                    publish(response_file, cached)
+                elif outcome in ("CLAIMED", "UNCERTAIN"):
+                    publish(response_file, make_response(identity, error="request outcome uncertain; reconciliation required"))
+                    raise ValueError("uncertain request cannot be retried")
+                else:
+                    if not self.budget_tracker.can_request(request.model, "default"):
+                        response = make_response(identity, error="model budget exhausted")
+                        journal.finish(identity, response)
+                        publish(response_file, response)
+                        raise ValueError("model budget exhausted")
+                    self.budget_tracker.record_request(request.model, "default")
+                    reserved = True
                     if self.litellm_client is None:
                         self.litellm_client = LiteLLMClient(self.config)
-
-                    # Process the request by calling LiteLLM
                     response = await self._process_request_with_litellm(request)
-
-                    # Publish the response atomically without overwriting an existing response.
-                    response_file = out_dir / f"resp-{request.request_id}.json"
-                    temp_file = out_dir / f".resp-{request.request_id}.tmp"
-                    try:
-                        with temp_file.open("xb") as handle:
-                            handle.write(response)
-                            handle.flush()
-                        # Hard-link creation is atomic and fails if response_file exists.
-                        temp_file.link_to(response_file)
-                    finally:
-                        try:
-                            temp_file.unlink()
-                        except FileNotFoundError:
-                            pass
-
-                    # Remove the processed request
-                    req_file.unlink()
-                finally:
-                    # Always release the concurrency slot, even on failure.
+                    # Persist response before publication. Publication failures may
+                    # republish the cached response, never repeat the model call.
+                    journal.finish(identity, response)
+                    publish(response_file, response)
+                claimed_file.unlink()
+                sync_directory(journal.directory)
+            except Exception as exc:
+                if identity is not None:
+                    journal.uncertain(identity)
+                logger.error("Request rejected (%s)", type(exc).__name__)
+                if os.path.lexists(claimed_file):
+                    destination = failed_dir / req_file.name
+                    if os.path.lexists(destination):
+                        destination = failed_dir / (req_file.name + "." + uuid.uuid4().hex)
+                    claimed_file.rename(destination)
+                    sync_directory(failed_dir)
+                    sync_directory(journal.directory)
+            finally:
+                if reserved:
                     self.budget_tracker.release_request(request.model, "default")
-
-            except Exception as e:
-                logger.error("Request rejected (%s)", type(e).__name__)
-                # Move to failed directory
-                failed_file = failed_dir / req_file.name
-                shutil.move(str(req_file), str(failed_file))
 
     async def _process_request_with_litellm(self, request: RPCRequest) -> bytes:
         """Process a request by calling LiteLLM."""
