@@ -1,0 +1,197 @@
+{
+  "status": "NOT APPROVED \u2014 NOT EXECUTED",
+  "project": "selfhealbench-pilot",
+  "network": "selfhealbench-pilot-review",
+  "candidate": "10.250.30.0/26",
+  "gateway": "10.250.30.1",
+  "ipv6": false,
+  "internal": true,
+  "docker_context": null,
+  "docker_endpoint": null,
+  "daemon_id": null,
+  "host_ports": {
+    "api": 18080,
+    "db": 18081,
+    "worker": 18082,
+    "auth": 18083,
+    "prometheus": 19090,
+    "loki": 13100,
+    "tempo": 13200
+  },
+  "bind_address": "127.0.0.1",
+  "allocation": "Dynamic container addresses within the explicitly approved /26; no static service addresses assigned.",
+  "approvals": {
+    "campus_allocation": false,
+    "network": false,
+    "ports": false,
+    "isolated_context": false,
+    "deployment": false,
+    "fault_injection": false,
+    "recovery": false
+  },
+  "operator": null,
+  "approved_scenarios": [],
+  "inventory": {
+    "captured_at": "2026-10-20T18:35:47.056050+00:00",
+    "provenance": "Transcribed from successful read-only tool outputs this turn; follow-up machine capture was declined. No further discovery performed.",
+    "host": "dada",
+    "docker_context": "default",
+    "daemon": {
+      "name": "dada",
+      "id": null,
+      "endpoint": "unix:///var/run/docker.sock"
+    },
+    "shared_daemon": true,
+    "isolated_context_available": false,
+    "complete": {
+      "host": true,
+      "routes": true,
+      "rules": true,
+      "docker": true,
+      "vpn": true
+    },
+    "host_cidrs": [
+      "127.0.0.0/8",
+      "172.16.40.0/22",
+      "172.17.0.0/16",
+      "10.250.10.0/26",
+      "10.250.20.0/26",
+      "172.20.0.0/16"
+    ],
+    "route_cidrs": [
+      "127.0.0.0/8",
+      "172.16.40.0/22",
+      "172.17.0.0/16",
+      "10.250.10.0/26",
+      "10.250.20.0/26",
+      "172.20.0.0/16"
+    ],
+    "docker_cidrs": [
+      "172.17.0.0/16",
+      "10.250.20.0/26",
+      "172.20.0.0/16",
+      "10.250.10.0/26"
+    ],
+    "vpn_cidrs": [],
+    "institutional_cidrs": [],
+    "campus_allocation": {
+      "confirmed": false,
+      "candidate": null,
+      "authority": null
+    },
+    "scope_note": "All local route tables and rules were observed; no tunnel interfaces visible. Unobservable campus/VPN allocations remain unresolved. Default route is reachability, not occupied allocation.",
+    "default_route": {
+      "gateway": "172.16.40.100",
+      "interface": "enp226s0"
+    },
+    "physical_interface": {
+      "name": "enp226s0",
+      "address": "172.16.40.56/22"
+    },
+    "routing_rules": [
+      "0: from all lookup local",
+      "32766: from all lookup main",
+      "32767: from all lookup default"
+    ],
+    "ipv6": "Loopback and link-local only; no global/default IPv6 route observed. Proposed benchmark IPv6 disabled.",
+    "network_details": [
+      {
+        "name": "bridge",
+        "driver": "bridge",
+        "scope": "local",
+        "internal": false,
+        "ipv6": false,
+        "subnet": "172.17.0.0/16",
+        "gateway": "172.17.0.1"
+      },
+      {
+        "name": "nanoclaw-egress",
+        "driver": "bridge",
+        "scope": "local",
+        "internal": true,
+        "ipv6": false,
+        "subnet": "10.250.20.0/26",
+        "gateway": null,
+        "observed_bridge_address": "10.250.20.1"
+      },
+      {
+        "name": "onecli_onecli",
+        "driver": "bridge",
+        "scope": "local",
+        "internal": false,
+        "ipv6": false,
+        "subnet": "172.20.0.0/16",
+        "gateway": "172.20.0.1"
+      },
+      {
+        "name": "selfheal-inference-v2",
+        "driver": "bridge",
+        "scope": "local",
+        "internal": true,
+        "ipv6": false,
+        "subnet": "10.250.10.0/26",
+        "gateway": null,
+        "observed_bridge_address": "10.250.10.1"
+      },
+      {
+        "name": "host",
+        "driver": "host",
+        "scope": "local",
+        "subnet": null
+      },
+      {
+        "name": "none",
+        "driver": "null",
+        "scope": "local",
+        "subnet": null
+      }
+    ],
+    "contexts_observed": [
+      "default"
+    ],
+    "running_containers": [
+      "onecli",
+      "onecli-postgres-1",
+      "litellm",
+      "broker",
+      "infer-0",
+      "infer-1",
+      "infer-2",
+      "infer-2b",
+      "infer-3",
+      "infer-4"
+    ],
+    "listening_tcp_ports": [
+      22,
+      53,
+      111,
+      159,
+      273,
+      1883,
+      5432,
+      5555,
+      6010,
+      6666,
+      10254,
+      10255,
+      16000,
+      35903,
+      41829,
+      44211,
+      47220,
+      50536,
+      53669
+    ],
+    "original_reference_ports": [
+      18080,
+      18081,
+      18082,
+      18083,
+      19090,
+      13100,
+      13200
+    ],
+    "reference_port_conflicts_observed": [],
+    "port_caveat": "No listed TCP listener or Docker publication on reference ports at observation time; this is not a reservation or an isolated-context port audit."
+  }
+}

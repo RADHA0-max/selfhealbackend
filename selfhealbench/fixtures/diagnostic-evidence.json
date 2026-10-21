@@ -1,0 +1,10 @@
+{
+  "probes": {
+    "api": {"status": 503, "body": {"error": "dependency failure"}, "latency_ms": 20},
+    "worker": {"status": 503, "body": {"error": "dependency failure"}, "latency_ms": 15},
+    "db": {"status": 503, "body": {"error": "service unavailable"}, "latency_ms": 10},
+    "auth": {"status": 200, "body": {"service": "auth", "status": "ok"}, "latency_ms": 5}
+  },
+  "docker_logs": "worker: database HTTP request failed",
+  "prometheus": {}
+}

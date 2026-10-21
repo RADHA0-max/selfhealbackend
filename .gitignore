@@ -1,0 +1,74 @@
+# Local LiteLLM secrets
+/.litellm-master-key
+/.litellm.env
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+!.env.sample
+*.env
+*.pem
+*.key
+*master-key*
+*secret*
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Node dependencies
+node_modules/
+dist/
+build/
+
+# Runtime files
+*.log
+*.pid
+*.sock
+coverage/
+htmlcov/
+
+# AI model files and archives
+*.gguf
+*.safetensors
+*.pt
+*.pth
+*.tar
+*.tar.gz
+*.zip
+
+# Local tooling
+.claude/
+.aider/
+.codex/
+
+# Captured runtime data
+captured/
+
+# Generated RPC data
+llm_rpc/out/
+llm_rpc/in/
+
+# Temporary source backups
+*.before-*
+*.backup-*
+*.bak
+*.bak-*
+
+# Benchmark runtime reports
+selfhealbench/reports/
+
+# Accidental terminal artifacts
+/bash
+/cd
+/find
+/grep
+/ighow*
+/it actually poll*
+/tory confirms*
+/ystemctl*
+/router/EOF

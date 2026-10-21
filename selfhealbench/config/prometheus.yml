@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 2s
+scrape_configs:
+  - job_name: selfheal-services
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['api:8080','db:8080','worker:8080','auth:8080']
