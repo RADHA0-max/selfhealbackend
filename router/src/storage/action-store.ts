@@ -396,10 +396,15 @@ export class ActionStore {
       UPDATE budget_reservations
       SET active = 0
       WHERE action_id = ? AND active = 1
-    `).run(actionId);
+        AND EXISTS (
+          SELECT 1 FROM action_claims
+          WHERE action_id = ?
+            AND status IN ('FAILED', 'EXECUTED')
+        )
+    `).run(actionId, actionId);
 
     if (result.changes !== 1) {
-      throw new Error("Budget reservation not active");
+      throw new Error("budget_release_not_permitted");
     }
   }
 

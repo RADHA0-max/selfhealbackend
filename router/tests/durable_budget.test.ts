@@ -10,7 +10,10 @@ it("preserves cooldown across database reopen", () => {
 
   try {
     const first = new ActionStore(path);
+    first.claim("action-1", "scale_service", "selfheal-svc-api");
     first.reserveBudget("action-1", "selfheal-svc-api");
+    first.beginExecution("action-1");
+    first.complete("action-1");
     first.releaseBudget("action-1");
     first.close();
 
@@ -34,7 +37,10 @@ it("blocks simultaneous target reservations across instances", () => {
     const first = new ActionStore(path);
     const second = new ActionStore(path);
 
+    first.claim("action-1", "scale_service", "selfheal-svc-api");
     first.reserveBudget("action-1", "selfheal-svc-api");
+    first.beginExecution("action-1");
+    first.complete("action-1");
 
     expect(() =>
       second.reserveBudget("action-2", "selfheal-svc-api")

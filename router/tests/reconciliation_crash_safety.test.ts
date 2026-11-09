@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -53,7 +54,15 @@ test("reconciliation refuses missing active reservation", () => {
   const env = setup();
 
   try {
-    env.store.releaseBudget(env.id);
+    // Simulate corrupted storage; the public release API must reject this.
+    const db = new DatabaseSync(env.db);
+    try {
+      db.prepare(
+        "UPDATE budget_reservations SET active = 0 WHERE action_id = ?"
+      ).run(env.id);
+    } finally {
+      db.close();
+    }
 
     expect(() =>
       env.store.resolveReconciliation(env.id),
@@ -127,3 +136,61 @@ test("successful reconciliation preserves cooldown history", () => {
     env.close();
   }
 });
+
+test("unresolved actions cannot release their safety reservations", () => {
+  const env = setup();
+
+  try {
+    expect(() => env.store.releaseBudget(env.id))
+      .toThrow("budget_release_not_permitted");
+
+    expect(env.store.getStatus(env.id))
+      .toBe("NEEDS_RECONCILIATION");
+
+    expect(() =>
+      env.store.reserveBudget("blocked-action", env.target)
+    ).toThrow("target_mutex_locked");
+
+    env.store.resolveReconciliation(env.id);
+
+    expect(() => env.store.releaseBudget(env.id))
+      .toThrow("budget_release_not_permitted");
+
+    expect(env.store.getPendingReconciliationAudits())
+      .toContain(env.id);
+  } finally {
+    env.close();
+  }
+});
+
+test.each(["CLAIMED", "EXECUTING"] as const)(
+  "%s actions cannot release active reservations",
+  (state) => {
+    const dir = mkdtempSync(join(tmpdir(), "nanoclaw-release-guard-"));
+    const db = join(dir, "actions.sqlite");
+    const store = new ActionStore(db);
+    const id = "guarded-action";
+    const target = "selfheal-svc-api";
+
+    try {
+      store.claim(id, "scale_service", target);
+      store.reserveBudget(id, target);
+
+      if (state === "EXECUTING") {
+        store.beginExecution(id);
+      }
+
+      expect(() => store.releaseBudget(id))
+        .toThrow("budget_release_not_permitted");
+
+      expect(store.getStatus(id)).toBe(state);
+
+      expect(() =>
+        store.reserveBudget("second-action", target)
+      ).toThrow("target_mutex_locked");
+    } finally {
+      store.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  },
+);
