@@ -76,8 +76,9 @@ describe("Gate 5 — Safety Budget", () => {
       }),
     ).rejects.toThrow("backend failed");
 
-    expect(budget.check("api").reason).toBe(
-      "target_cooldown_active",
-    );
+    expect(budget.check("api")).toEqual({
+      allowed: false,
+      reason: "target_cooldown_active",
+    });
   });
 });

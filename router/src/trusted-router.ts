@@ -94,7 +94,7 @@ export class TrustedRouter {
   async execute(
     payload: unknown,
     trustedEvidence: unknown,
-    idempotencyKey = randomUUID(),
+    idempotencyKey: string = randomUUID(),
   ): Promise<TrustedResult> {
     const reject = (gate: string, detail: string): TrustedResult => ({
       status: "REJECTED",
