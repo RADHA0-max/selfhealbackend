@@ -49,5 +49,19 @@ class TestK6P03(unittest.TestCase):
         self.assertIn("duration: '15s'", content)
 
 
+    def test_ddos_scenario_is_bounded(self):
+        content = (ROOT / "ddos.js").read_text()
+        self.assertIn("vus: 3", content)
+        self.assertIn("duration: '15s'", content)
+        self.assertIn("timeout: '3s'", content)
+        self.assertIn("sleep(1)", content)
+
+    def test_ddos_scenario_is_identifiable(self):
+        content = (ROOT / "ddos.js").read_text()
+        self.assertIn("NanoClaw-Synthetic-DDoS", content)
+        self.assertIn("synthetic_ddos", content)
+        self.assertIn("/api/data", content)
+
+
 if __name__ == "__main__":
     unittest.main()
