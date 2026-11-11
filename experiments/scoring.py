@@ -36,6 +36,10 @@ def score_results(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "completion_rate": completed / total if total else None,
         "failure_rate": (total - completed) / total if total else None,
         "exact_match_rate": exact_matches / total if total else None,
+        "valid_decision_rate": completed / total if total else None,
+        "correct_given_valid_rate": (
+            exact_matches / completed if completed else None
+        ),
         "status_counts": status_counts,
         "scores": {
             metric: (
