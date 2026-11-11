@@ -195,10 +195,14 @@ class RPCClient:
 
                 return result
 
+            def reject_constant(value):
+                raise RPCError("non-finite response JSON number")
+
             try:
                 response = json.loads(
                     raw,
                     object_pairs_hook=reject_duplicates,
+                    parse_constant=reject_constant,
                 )
 
             except (ValueError, UnicodeDecodeError) as exc:
@@ -224,7 +228,10 @@ class RPCClient:
                     "unexpected response fields"
                 )
 
-            if response["request_id"] != request_id:
+            if (
+                not isinstance(response["request_id"], str)
+                or response["request_id"] != request_id
+            ):
                 raise RPCError(
                     "response request_id mismatch"
                 )
@@ -289,6 +296,15 @@ class RPCClient:
             ):
                 raise RPCError(
                     "successful response cannot contain an error"
+                )
+
+            # Failed responses must not contain successful output.
+            if not response["ok"] and (
+                response["content"] is not None
+                or response["embedding"] is not None
+            ):
+                raise RPCError(
+                    "failed response contains successful output"
                 )
 
             # Handle broker-reported failures.
