@@ -56,6 +56,22 @@ class TestReporting(unittest.TestCase):
         self.assertEqual(report["exact_match_rate"], 1.0)
         self.assertEqual(report["failure_counts"], {})
 
+    def test_mismatched_case_id_rejected(self):
+        result = evaluation()
+        result["results"][0]["case_id"] = "wrong-case"
+
+        with self.assertRaises(ValueError):
+            build_report(PATH, result)
+
+    def test_duplicate_result_id_rejected(self):
+        result = evaluation()
+        result["results"][1]["case_id"] = (
+            result["results"][0]["case_id"]
+        )
+
+        with self.assertRaises(ValueError):
+            build_report(PATH, result)
+
     def test_invalid_recovery_claim_rejected(self):
         result = evaluation()
         result["recovery_success"] = True

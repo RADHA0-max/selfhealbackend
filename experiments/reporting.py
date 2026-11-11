@@ -20,6 +20,18 @@ def build_report(
     data = json.loads(raw)
     rows = evaluation["results"]
 
+    expected_ids = [case["case_id"] for case in data["cases"]]
+    actual_ids = [row["case_id"] for row in rows]
+
+    if len(expected_ids) != len(set(expected_ids)):
+        raise ValueError("duplicate dataset case IDs")
+
+    if len(actual_ids) != len(set(actual_ids)):
+        raise ValueError("duplicate evaluation case IDs")
+
+    if set(actual_ids) != set(expected_ids):
+        raise ValueError("evaluation does not match dataset")
+
     if evaluation.get("mode") != "synthetic_offline":
         raise ValueError("unsupported evaluation mode")
 
