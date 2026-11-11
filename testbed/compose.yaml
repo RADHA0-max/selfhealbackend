@@ -3,6 +3,9 @@ name: nanoclaw-person-c-testbed
 services:
   testbed-app:
     image: python:3.11-slim
+    cpus: 0.5
+    mem_limit: 256m
+    pids_limit: 64
     working_dir: /workspace
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
@@ -28,9 +31,15 @@ services:
 
   testbed-envoy:
     image: envoyproxy/envoy:v1.31-latest
+    cpus: 1.0
+    mem_limit: 512m
+    pids_limit: 128
+    entrypoint: ["envoy"]
     command:
       - -c
       - /etc/envoy/envoy.yaml
+      - --concurrency
+      - "2"
     volumes:
       - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     depends_on:

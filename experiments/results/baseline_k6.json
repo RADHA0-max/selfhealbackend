@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "test_id": "person_c_p01_baseline_k6",
+  "test_date": "2026-11-11",
+  "test_type": "isolated_synthetic_baseline",
+  "status": "passed",
+  "environment": {
+    "compose_project": "nanoclaw-person-c-testbed",
+    "target_service": "testbed-envoy",
+    "target_endpoint": "/api/data",
+    "host_ports_published": false,
+    "gpu_inference_used": false,
+    "application": {
+      "cpu_limit": 0.5,
+      "memory_limit_mib": 256,
+      "pids_limit": 64
+    },
+    "envoy": {
+      "cpu_limit": 1.0,
+      "memory_limit_mib": 512,
+      "pids_limit": 128,
+      "worker_concurrency": 2
+    },
+    "k6": {
+      "virtual_users": 1,
+      "duration_seconds": 10,
+      "http_timeout_seconds": 3,
+      "cpu_limit": 0.5,
+      "memory_limit_mib": 256,
+      "pids_limit": 64
+    }
+  },
+  "preflight": {
+    "health_http_status": 200,
+    "ready_http_status": 200,
+    "api_data_http_status": 200
+  },
+  "metrics": {
+    "http_requests": 10,
+    "successful_checks": 10,
+    "failed_checks": 0,
+    "http_error_rate": 0.0,
+    "average_latency_ms": 0.86425,
+    "p95_latency_ms": 1.15,
+    "maximum_latency_ms": 1.33,
+    "throughput_requests_per_second": 0.998187
+  },
+  "thresholds": {
+    "http_error_rate_below": 0.05,
+    "p95_latency_below_ms": 1000,
+    "all_passed": true
+  },
+  "execution": {
+    "k6_exit_code": 0,
+    "testbed_removed_after_test": true
+  },
+  "limitations": [
+    "Synthetic Python application; not production traffic.",
+    "Single virtual user and ten HTTP requests.",
+    "No real Ollama inference.",
+    "No automated recovery or live chaos testing.",
+    "Additional k6 scenarios were not executed.",
+    "Host kernel reported limited swap-control support.",
+    "Latency measurements are specific to this test environment."
+  ]
+}
