@@ -6,6 +6,7 @@ from dataclasses import asdict
 from typing import Any
 
 from agent.diagnosis import DiagnosisError, diagnose
+from experiments.failure_classification import classify_failure
 from experiments.offline_rpc import OfflineRPC
 from experiments.scoring import score_results
 from testbed.fixtures import IncidentFixture
@@ -24,6 +25,7 @@ def run_experiment(
         row = {
             "case_id": case.case_id,
             "status": "error",
+            "failure_reason": None,
             "category_correct": False,
             "target_correct": False,
             "action_correct": False,
@@ -31,10 +33,12 @@ def run_experiment(
 
         try:
             result = diagnose(rpc, case.evidence)
-        except (DiagnosisError, TimeoutError, ValueError, TypeError):
+        except (DiagnosisError, TimeoutError, ValueError, TypeError) as exc:
             row["status"] = "invalid_decision"
-        except Exception:
+            row["failure_reason"] = classify_failure(exc)
+        except Exception as exc:
             row["status"] = "agent_error"
+            row["failure_reason"] = classify_failure(exc)
         else:
             row.update(
                 status="ok",

@@ -1,0 +1,103 @@
+"""Offline checks for P03 traffic scenario prototypes."""
+
+from pathlib import Path
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1] / "k6"
+
+
+class TestK6P03(unittest.TestCase):
+
+    def test_new_scenarios_exist(self):
+        for name in ("nat_control.js", "scraper.js"):
+            with self.subTest(name=name):
+                self.assertTrue((ROOT / name).is_file())
+
+    def test_scenarios_have_bounded_load(self):
+        for name in ("nat_control.js", "scraper.js"):
+            with self.subTest(name=name):
+                content = (ROOT / name).read_text()
+                self.assertIn("duration: '15s'", content)
+                self.assertIn("timeout: '3s'", content)
+                self.assertIn("TARGET_URL", content)
+                self.assertIn("sleep(1)", content)
+
+    def test_nat_has_distinct_logical_sessions(self):
+        content = (ROOT / "nat_control.js").read_text()
+        self.assertIn("nat-user-${__VU}", content)
+        self.assertIn("X-Test-Session", content)
+        self.assertIn("nat_negative_control", content)
+
+    def test_scraper_has_identifiable_traffic(self):
+        content = (ROOT / "scraper.js").read_text()
+        self.assertIn("NanoClaw-Synthetic-Scraper", content)
+        self.assertIn("synthetic_scraper", content)
+
+
+    def test_organic_uses_batch_requests(self):
+        content = (ROOT / "organic.js").read_text()
+        self.assertIn("http.batch(", content)
+        self.assertIn("/health", content)
+        self.assertIn("/api/data", content)
+
+    def test_organic_has_session_identity(self):
+        content = (ROOT / "organic.js").read_text()
+        self.assertIn("organic-user-${__VU}", content)
+        self.assertIn("X-Test-Session", content)
+        self.assertIn("vus: 1", content)
+        self.assertIn("duration: '15s'", content)
+
+
+    def test_ddos_scenario_is_bounded(self):
+        content = (ROOT / "ddos.js").read_text()
+        self.assertIn("vus: 3", content)
+        self.assertIn("duration: '15s'", content)
+        self.assertIn("timeout: '3s'", content)
+        self.assertIn("sleep(1)", content)
+
+    def test_ddos_scenario_is_identifiable(self):
+        content = (ROOT / "ddos.js").read_text()
+        self.assertIn("NanoClaw-Synthetic-DDoS", content)
+        self.assertIn("synthetic_ddos", content)
+        self.assertIn("/api/data", content)
+
+
+    def test_parallel_has_experiment_identity(self):
+        content = (ROOT / "parallel.js").read_text()
+        self.assertIn("X-Test-Arm", content)
+        self.assertIn("X-Test-Session", content)
+        self.assertIn("parallel_control", content)
+
+    def test_parallel_preserves_bounded_batch(self):
+        content = (ROOT / "parallel.js").read_text()
+        self.assertIn("http.batch(", content)
+        self.assertIn("vus: 1", content)
+        self.assertIn("duration: '10s'", content)
+        self.assertIn("timeout: '3s'", content)
+
+
+    def test_headless_scenario_is_bounded(self):
+        content = (ROOT / "headless_botnet.js").read_text()
+        self.assertIn("vus: 2", content)
+        self.assertIn("duration: '15s'", content)
+        self.assertIn("timeout: '3s'", content)
+        self.assertIn("synthetic_headless_botnet", content)
+
+    def test_ambiguous_scenario_is_bounded(self):
+        content = (ROOT / "ambiguous.js").read_text()
+        self.assertIn("vus: 1", content)
+        self.assertIn("duration: '15s'", content)
+        self.assertIn("timeout: '3s'", content)
+        self.assertIn("synthetic_ambiguous", content)
+
+    def test_new_scenarios_use_known_endpoints(self):
+        for name in ("headless_botnet.js", "ambiguous.js"):
+            with self.subTest(name=name):
+                content = (ROOT / name).read_text()
+                self.assertIn("/api/data", content)
+                self.assertNotIn("http.post(", content)
+
+
+if __name__ == "__main__":
+    unittest.main()

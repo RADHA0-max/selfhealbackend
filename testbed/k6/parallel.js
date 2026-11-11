@@ -9,9 +9,18 @@ export const options = {
 };
 
 export default function () {
+  const params = {
+    headers: {
+      'X-Test-Arm': 'person-c-parallel-control',
+      'X-Test-Session': `parallel-user-${__VU}`,
+    },
+    timeout: '3s',
+    tags: { scenario: 'parallel_control' },
+  };
+
   const responses = http.batch([
-    ['GET', `${TARGET}/health`, null, { timeout: '3s' }],
-    ['GET', `${TARGET}/api/data`, null, { timeout: '3s' }],
+    ['GET', `${TARGET}/health`, null, params],
+    ['GET', `${TARGET}/api/data`, null, params],
   ]);
 
   for (const response of responses) {
