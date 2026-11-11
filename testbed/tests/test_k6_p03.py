@@ -35,5 +35,19 @@ class TestK6P03(unittest.TestCase):
         self.assertIn("synthetic_scraper", content)
 
 
+    def test_organic_uses_batch_requests(self):
+        content = (ROOT / "organic.js").read_text()
+        self.assertIn("http.batch(", content)
+        self.assertIn("/health", content)
+        self.assertIn("/api/data", content)
+
+    def test_organic_has_session_identity(self):
+        content = (ROOT / "organic.js").read_text()
+        self.assertIn("organic-user-${__VU}", content)
+        self.assertIn("X-Test-Session", content)
+        self.assertIn("vus: 1", content)
+        self.assertIn("duration: '15s'", content)
+
+
 if __name__ == "__main__":
     unittest.main()

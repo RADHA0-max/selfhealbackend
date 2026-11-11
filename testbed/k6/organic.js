@@ -11,19 +11,34 @@ export const options = {
       duration: '15s',
     },
   },
+  thresholds: {
+    http_req_failed: ['rate<0.05'],
+  },
 };
 
 export default function () {
-  const path = Math.random() < 0.8 ? '/api/data' : '/health';
+  const session = `organic-user-${__VU}`;
 
-  const response = http.get(`${TARGET}${path}`, {
+  const params = {
+    headers: {
+      'User-Agent': 'NanoClaw-Organic/1.0',
+      'X-Test-Session': session,
+    },
     timeout: '3s',
     tags: { scenario: 'organic' },
-  });
+  };
 
-  check(response, {
-    'successful response': (r) => r.status === 200,
-  });
+  // Simulate a user checking service health and reading API data.
+  const responses = http.batch([
+    ['GET', `${TARGET}/health`, null, params],
+    ['GET', `${TARGET}/api/data`, null, params],
+  ]);
+
+  for (const response of responses) {
+    check(response, {
+      'HTTP 200': (r) => r.status === 200,
+    });
+  }
 
   sleep(1 + Math.random());
 }
