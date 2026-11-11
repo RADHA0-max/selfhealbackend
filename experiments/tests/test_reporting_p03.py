@@ -72,6 +72,34 @@ class TestReporting(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_report(PATH, result)
 
+    def test_success_with_failure_reason_rejected(self):
+        result = evaluation()
+        result["results"][0]["failure_reason"] = "invalid_json"
+
+        with self.assertRaises(ValueError):
+            build_report(PATH, result)
+
+    def test_failure_without_reason_rejected(self):
+        result = evaluation()
+        result["results"][0]["status"] = "invalid_decision"
+
+        with self.assertRaises(ValueError):
+            build_report(PATH, result)
+
+    def test_incorrect_status_counts_rejected(self):
+        result = evaluation()
+        result["status_counts"]["ok"] = 0
+
+        with self.assertRaises(ValueError):
+            build_report(PATH, result)
+
+    def test_incorrect_completed_count_rejected(self):
+        result = evaluation()
+        result["completed"] = 0
+
+        with self.assertRaises(ValueError):
+            build_report(PATH, result)
+
     def test_invalid_recovery_claim_rejected(self):
         result = evaluation()
         result["recovery_success"] = True

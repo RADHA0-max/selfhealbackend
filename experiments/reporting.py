@@ -44,6 +44,42 @@ def build_report(
     if evaluation.get("recovery_success") is not None:
         raise ValueError("offline evaluation cannot claim recovery")
 
+    allowed_statuses = {"ok", "invalid_decision", "agent_error"}
+    allowed_reasons = {
+        "invalid_json",
+        "invalid_schema",
+        "transport_error",
+        "agent_error",
+    }
+
+    actual_counts = Counter()
+
+    for row in rows:
+        status = row["status"]
+        reason = row["failure_reason"]
+
+        if status not in allowed_statuses:
+            raise ValueError("invalid evaluation status")
+
+        if status == "ok":
+            if reason is not None:
+                raise ValueError("successful row has failure reason")
+        elif reason not in allowed_reasons:
+            raise ValueError("failed row missing valid failure reason")
+
+        actual_counts[status] += 1
+
+    expected_counts = {
+        status: actual_counts[status]
+        for status in ("ok", "invalid_decision", "agent_error")
+    }
+
+    if evaluation["status_counts"] != expected_counts:
+        raise ValueError("evaluation status counts mismatch")
+
+    if evaluation["completed"] != actual_counts["ok"]:
+        raise ValueError("evaluation completed count mismatch")
+
     failures = Counter(
         row["failure_reason"]
         for row in rows
