@@ -1,0 +1,102 @@
+{
+  "completed": 6,
+  "description": "Expected labels replayed through the diagnosis pipeline. Not a model accuracy benchmark.",
+  "evaluation": "fixture_replay",
+  "mode": "synthetic_offline",
+  "model_inference_performed": false,
+  "recovery_attempted": false,
+  "recovery_success": null,
+  "requested": 6,
+  "results": [
+    {
+      "action_correct": true,
+      "case_id": "DB-503",
+      "category_correct": true,
+      "diagnosis": {
+        "category": "dependency_failure",
+        "confidence": 1.0,
+        "recommended_action": "investigate_database",
+        "summary": "Synthetic fixture replay.",
+        "target": "database"
+      },
+      "status": "ok",
+      "target_correct": true
+    },
+    {
+      "action_correct": true,
+      "case_id": "API-503",
+      "category_correct": true,
+      "diagnosis": {
+        "category": "service_failure",
+        "confidence": 1.0,
+        "recommended_action": "investigate_api",
+        "summary": "Synthetic fixture replay.",
+        "target": "api"
+      },
+      "status": "ok",
+      "target_correct": true
+    },
+    {
+      "action_correct": true,
+      "case_id": "AUTH-503",
+      "category_correct": true,
+      "diagnosis": {
+        "category": "service_failure",
+        "confidence": 1.0,
+        "recommended_action": "investigate_auth",
+        "summary": "Synthetic fixture replay.",
+        "target": "auth"
+      },
+      "status": "ok",
+      "target_correct": true
+    },
+    {
+      "action_correct": true,
+      "case_id": "WORKER-503",
+      "category_correct": true,
+      "diagnosis": {
+        "category": "service_failure",
+        "confidence": 1.0,
+        "recommended_action": "investigate_worker",
+        "summary": "Synthetic fixture replay.",
+        "target": "worker"
+      },
+      "status": "ok",
+      "target_correct": true
+    },
+    {
+      "action_correct": true,
+      "case_id": "API-LATENCY",
+      "category_correct": true,
+      "diagnosis": {
+        "category": "latency",
+        "confidence": 1.0,
+        "recommended_action": "investigate_latency",
+        "summary": "Synthetic fixture replay.",
+        "target": "api"
+      },
+      "status": "ok",
+      "target_correct": true
+    },
+    {
+      "action_correct": true,
+      "case_id": "UNKNOWN",
+      "category_correct": true,
+      "diagnosis": {
+        "category": "unknown",
+        "confidence": 1.0,
+        "recommended_action": "collect_more_evidence",
+        "summary": "Synthetic fixture replay.",
+        "target": "unknown"
+      },
+      "status": "ok",
+      "target_correct": true
+    }
+  ],
+  "schema_version": 1,
+  "scores": {
+    "action_correct": 1.0,
+    "category_correct": 1.0,
+    "target_correct": 1.0
+  }
+}
