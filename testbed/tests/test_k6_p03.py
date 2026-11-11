@@ -63,5 +63,19 @@ class TestK6P03(unittest.TestCase):
         self.assertIn("/api/data", content)
 
 
+    def test_parallel_has_experiment_identity(self):
+        content = (ROOT / "parallel.js").read_text()
+        self.assertIn("X-Test-Arm", content)
+        self.assertIn("X-Test-Session", content)
+        self.assertIn("parallel_control", content)
+
+    def test_parallel_preserves_bounded_batch(self):
+        content = (ROOT / "parallel.js").read_text()
+        self.assertIn("http.batch(", content)
+        self.assertIn("vus: 1", content)
+        self.assertIn("duration: '10s'", content)
+        self.assertIn("timeout: '3s'", content)
+
+
 if __name__ == "__main__":
     unittest.main()
