@@ -9,9 +9,32 @@ from pathlib import Path
 from typing import Any
 
 
+
+def fingerprint_responses(responses: dict[str, str]) -> str:
+    """Hash canonical predefined responses, including invalid JSON outputs."""
+    if not isinstance(responses, dict):
+        raise TypeError("responses must be a dictionary")
+
+    if any(
+        not isinstance(key, str) or not isinstance(value, str)
+        for key, value in responses.items()
+    ):
+        raise TypeError("response keys and values must be strings")
+
+    canonical = json.dumps(
+        responses,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+    return hashlib.sha256(canonical).hexdigest()
+
+
 def build_report(
     dataset_path: Path,
     evaluation: dict[str, Any],
+    responses: dict[str, str],
 ) -> dict[str, Any]:
     """Attach dataset integrity metadata without claiming live inference."""
     raw = dataset_path.read_bytes()
@@ -31,6 +54,14 @@ def build_report(
 
     if set(actual_ids) != set(expected_ids):
         raise ValueError("evaluation does not match dataset")
+
+    if not isinstance(responses, dict):
+        raise TypeError("responses must be a dictionary")
+
+    if set(responses) != set(expected_ids):
+        raise ValueError("responses do not match dataset")
+
+    response_sha256 = fingerprint_responses(responses)
 
     if evaluation.get("mode") != "synthetic_offline":
         raise ValueError("unsupported evaluation mode")
@@ -90,6 +121,7 @@ def build_report(
         "report_version": 1,
         "dataset_version": data["schema_version"],
         "dataset_sha256": digest,
+        "responses_sha256": response_sha256,
         "evaluation_mode": "synthetic_offline",
         "requested": evaluation["requested"],
         "valid_decision_rate": evaluation["valid_decision_rate"],
