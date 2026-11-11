@@ -77,5 +77,27 @@ class TestK6P03(unittest.TestCase):
         self.assertIn("timeout: '3s'", content)
 
 
+    def test_headless_scenario_is_bounded(self):
+        content = (ROOT / "headless_botnet.js").read_text()
+        self.assertIn("vus: 2", content)
+        self.assertIn("duration: '15s'", content)
+        self.assertIn("timeout: '3s'", content)
+        self.assertIn("synthetic_headless_botnet", content)
+
+    def test_ambiguous_scenario_is_bounded(self):
+        content = (ROOT / "ambiguous.js").read_text()
+        self.assertIn("vus: 1", content)
+        self.assertIn("duration: '15s'", content)
+        self.assertIn("timeout: '3s'", content)
+        self.assertIn("synthetic_ambiguous", content)
+
+    def test_new_scenarios_use_known_endpoints(self):
+        for name in ("headless_botnet.js", "ambiguous.js"):
+            with self.subTest(name=name):
+                content = (ROOT / name).read_text()
+                self.assertIn("/api/data", content)
+                self.assertNotIn("http.post(", content)
+
+
 if __name__ == "__main__":
     unittest.main()
