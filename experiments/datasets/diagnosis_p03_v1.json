@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "dataset_type": "synthetic",
+  "cases": [
+    {
+      "case_id": "p03-synthetic-001",
+      "signal": {
+        "signal_id": "p03-synthetic-001",
+        "target": "api",
+        "status": 503
+      },
+      "expected": {
+        "category": "service_failure",
+        "target": "api",
+        "recommended_action": "investigate_api"
+      }
+    },
+    {
+      "case_id": "p03-synthetic-002",
+      "signal": {
+        "signal_id": "p03-synthetic-002",
+        "target": "database",
+        "status": 503
+      },
+      "expected": {
+        "category": "dependency_failure",
+        "target": "database",
+        "recommended_action": "investigate_database"
+      }
+    },
+    {
+      "case_id": "p03-synthetic-003",
+      "signal": {
+        "signal_id": "p03-synthetic-003",
+        "target": "worker",
+        "status": 504
+      },
+      "expected": {
+        "category": "latency",
+        "target": "worker",
+        "recommended_action": "investigate_latency"
+      }
+    },
+    {
+      "case_id": "p03-synthetic-004",
+      "signal": {
+        "signal_id": "p03-synthetic-004",
+        "target": "auth",
+        "status": 503
+      },
+      "expected": {
+        "category": "resource_exhaustion",
+        "target": "auth",
+        "recommended_action": "investigate_resources"
+      }
+    },
+    {
+      "case_id": "p03-synthetic-005",
+      "signal": {
+        "signal_id": "p03-synthetic-005",
+        "target": "api",
+        "status": 200
+      },
+      "expected": {
+        "category": "unknown",
+        "target": "unknown",
+        "recommended_action": "collect_more_evidence"
+      }
+    }
+  ]
+}
