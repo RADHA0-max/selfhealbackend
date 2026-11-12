@@ -6,7 +6,7 @@ No CLI or live endpoint is exposed. Callers must explicitly supply transport.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
 from agent.diagnosis import diagnose
 from agent.signal_adapter import signal_to_evidence
@@ -49,12 +49,20 @@ def capture_diagnoses(
     *,
     model_id: str,
     run_id: str,
+    checkpoint: Callable[..., None] | None = None,
 ) -> dict[str, Any]:
     """Capture at most 100 cases; never execute recommended actions."""
     cases = validate_dataset(dataset)
 
     if len(cases) > MAX_CASES:
         raise CaptureRunError("run exceeds 100 cases")
+
+    if checkpoint is not None and any(
+        len(case["case_id"]) > 56
+        or case["case_id"].endswith("-outcome")
+        for case in cases
+    ):
+        raise CaptureRunError("invalid checkpoint case ID")
 
     # Validate metadata before publishing any requests.
     placeholder = {
@@ -74,6 +82,10 @@ def capture_diagnoses(
         case_id = case["case_id"]
         recorder = RecordingRPC(transport)
 
+        # Persist intent before any request can reach the transport.
+        if checkpoint is not None:
+            checkpoint(case_id, status="uncertain")
+
         try:
             evidence = signal_to_evidence(case["signal"])
             diagnose(recorder, evidence)
@@ -89,6 +101,20 @@ def capture_diagnoses(
                 failures[case_id] = "response_too_large"
         else:
             failures.setdefault(case_id, "missing_model_content")
+
+        if checkpoint is not None:
+            if case_id in responses:
+                checkpoint(
+                    case_id + "-outcome",
+                    status="completed",
+                    response=responses[case_id],
+                )
+            else:
+                checkpoint(
+                    case_id + "-outcome",
+                    status="failed",
+                    error=failures.get(case_id, "unknown_failure"),
+                )
 
     capture = dict(placeholder)
     capture["responses"] = responses

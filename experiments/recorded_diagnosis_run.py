@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from experiments.live_diagnosis_runner import capture_diagnoses
+from experiments.run_checkpoint import inspect_checkpoints, write_case_checkpoint
 from experiments.run_record import RunRecordError, write_run_record
 from experiments.run_reservation import reserve_run
 
@@ -36,11 +37,26 @@ def run_and_record(
         raise RunRecordError("run record already exists")
 
     with reserve_run(directory, run_id):
+        # Never replay a run with existing checkpoints.
+        if inspect_checkpoints(directory, run_id):
+            raise RunRecordError("run already has checkpoints")
+
+        def checkpoint(case_id, *, status, response=None, error=None):
+            write_case_checkpoint(
+                directory,
+                run_id,
+                case_id,
+                status=status,
+                response=response,
+                error=error,
+            )
+
         result = capture_diagnoses(
             dataset,
             transport,
             model_id=model_id,
             run_id=run_id,
+            checkpoint=checkpoint,
         )
 
         return write_run_record(
