@@ -7,6 +7,7 @@ from typing import Any
 
 from experiments.live_diagnosis_runner import capture_diagnoses
 from experiments.run_record import RunRecordError, write_run_record
+from experiments.run_reservation import reserve_run
 
 
 def run_and_record(
@@ -34,26 +35,27 @@ def run_and_record(
     if (directory / ("run-" + run_id + ".json")).exists():
         raise RunRecordError("run record already exists")
 
-    result = capture_diagnoses(
-        dataset,
-        transport,
-        model_id=model_id,
-        run_id=run_id,
-    )
+    with reserve_run(directory, run_id):
+        result = capture_diagnoses(
+            dataset,
+            transport,
+            model_id=model_id,
+            run_id=run_id,
+        )
 
-    return write_run_record(
-        output_dir,
-        run_id,
-        {
-            "schema_version": 1,
-            "run_id": run_id,
-            "model_id": model_id,
-            "requested": result["requested"],
-            "completed": result["completed"],
-            "failures": result["failures"],
-            "capture": result["capture"],
-            "partial_responses": result["partial_responses"],
-            "inference_verified": False,
-            "recovery_success": None,
-        },
-    )
+        return write_run_record(
+            output_dir,
+            run_id,
+            {
+                "schema_version": 1,
+                "run_id": run_id,
+                "model_id": model_id,
+                "requested": result["requested"],
+                "completed": result["completed"],
+                "failures": result["failures"],
+                "capture": result["capture"],
+                "partial_responses": result["partial_responses"],
+                "inference_verified": False,
+                "recovery_success": None,
+            },
+        )

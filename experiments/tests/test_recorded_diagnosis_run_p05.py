@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from experiments.recorded_diagnosis_run import run_and_record
+from experiments.run_reservation import reserve_run
 from experiments.tests.test_live_diagnosis_runner_p05 import (
     FakeTransport,
     dataset,
@@ -79,6 +80,26 @@ class RecordedRunTests(unittest.TestCase):
         self.assertEqual(
             len(list(self.directory.glob("run-*.json"))),
             1,
+        )
+
+
+    def test_active_reservation_blocks_inference(self):
+        transport = FakeTransport()
+
+        with reserve_run(self.directory, "active"):
+            with self.assertRaises(ValueError):
+                run_and_record(
+                    dataset(),
+                    transport,
+                    model_id="fast",
+                    run_id="active",
+                    output_dir=self.directory,
+                )
+
+        self.assertEqual(transport.calls, 0)
+        self.assertEqual(
+            list(self.directory.glob("run-*.json")),
+            [],
         )
 
 
