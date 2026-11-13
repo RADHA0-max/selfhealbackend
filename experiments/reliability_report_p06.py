@@ -51,11 +51,16 @@ def summarize_reliability(record):
 
     expected_ids = set(case_ids)
 
-    if (
-        set(responses) & set(failures)
-        or set(responses) | set(failures) != expected_ids
-    ):
+    # A captured response may also have a diagnosis-validation failure.
+    # Only cases without captured content represent missing responses.
+    if set(responses) | set(failures) != expected_ids:
         raise ValueError("response/failure accounting mismatch")
+
+    if any(
+        row["case_id"] in failures and row["status"] == "ok"
+        for row in rows
+    ):
+        raise ValueError("successful diagnosis marked as failed")
 
     valid = sum(row["status"] == "ok" for row in rows)
 
