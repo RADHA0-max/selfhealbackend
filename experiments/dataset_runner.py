@@ -9,7 +9,8 @@ from dataclasses import asdict
 from typing import Any
 
 from agent.diagnosis import DiagnosisError
-from agent.signal_diagnosis import diagnose_signal
+from agent.diagnosis import diagnose
+from agent.signal_adapter import signal_to_evidence
 from experiments.dataset_loader import validate_dataset
 from experiments.failure_classification import classify_failure
 from experiments.offline_rpc import OfflineRPC
@@ -48,9 +49,11 @@ def run_dataset(
         }
 
         try:
-            result = diagnose_signal(
+            # Score raw model output, not the evidence-gated advisory result.
+            evidence = signal_to_evidence(case["signal"])
+            result = diagnose(
                 OfflineRPC(responses[case_id]),
-                case["signal"],
+                evidence,
             )
         except (DiagnosisError, TimeoutError, ValueError, TypeError) as exc:
             row["status"] = "invalid_decision"

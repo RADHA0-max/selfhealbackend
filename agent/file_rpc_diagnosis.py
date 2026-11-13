@@ -12,6 +12,7 @@ from agent.diagnosis import Diagnosis
 from agent.rpc_client import RPCClient
 from agent.signal_adapter import signal_to_evidence
 from agent.diagnosis import diagnose
+from agent.evidence_gate import gate_diagnosis
 
 
 def diagnose_file_rpc(
@@ -30,4 +31,5 @@ def diagnose_file_rpc(
         timeout=timeout,
     )
 
-    return diagnose(client, evidence)
+    diagnosis = diagnose(client, evidence)
+    return gate_diagnosis(signal, diagnosis)

@@ -1,0 +1,153 @@
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from experiments.recorded_diagnosis_run import run_and_record
+from experiments.run_reservation import reserve_run
+from experiments.tests.test_live_diagnosis_runner_p05 import (
+    FakeTransport,
+    dataset,
+)
+
+
+class RecordedRunTests(unittest.TestCase):
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.directory = Path(self.temp.name)
+
+    def test_complete_run_is_saved(self):
+        path = run_and_record(
+            dataset(),
+            FakeTransport(),
+            model_id="fast",
+            run_id="complete",
+            output_dir=self.directory,
+        )
+
+        record = json.loads(path.read_text())
+
+        self.assertEqual(record["requested"], 1)
+        self.assertEqual(record["completed"], 1)
+        self.assertEqual(record["failures"], {})
+        self.assertIsNotNone(record["capture"])
+        self.assertFalse(record["inference_verified"])
+        self.assertIsNone(record["recovery_success"])
+
+    def test_dataset_fingerprint_is_reproducible(self):
+        original = dataset()
+
+        reordered = json.loads(
+            json.dumps(original, sort_keys=True)
+        )
+
+        changed = json.loads(json.dumps(original))
+        changed["cases"][0]["signal"]["status"] = 500
+
+        records = []
+
+        for run_id, case_dataset in (
+            ("fingerprint-original", original),
+            ("fingerprint-reordered", reordered),
+            ("fingerprint-changed", changed),
+        ):
+            path = run_and_record(
+                case_dataset,
+                FakeTransport(),
+                model_id="fast",
+                run_id=run_id,
+                output_dir=self.directory,
+            )
+            records.append(json.loads(path.read_text()))
+
+        first, second, third = records
+
+        self.assertEqual(
+            first["dataset_sha256"],
+            second["dataset_sha256"],
+        )
+        self.assertNotEqual(
+            first["dataset_sha256"],
+            third["dataset_sha256"],
+        )
+
+        for record in records:
+            self.assertEqual(
+                record["dataset_fingerprint_method"],
+                "canonical_json_sha256",
+            )
+            self.assertEqual(record["dataset_type"], "synthetic")
+            self.assertEqual(len(record["dataset_sha256"]), 64)
+            self.assertFalse(record["inference_verified"])
+
+    def test_failed_run_is_saved(self):
+        path = run_and_record(
+            dataset(),
+            FakeTransport(error=TimeoutError("timeout")),
+            model_id="fast",
+            run_id="failed",
+            output_dir=self.directory,
+        )
+
+        record = json.loads(path.read_text())
+
+        self.assertEqual(record["requested"], 1)
+        self.assertEqual(record["completed"], 0)
+        self.assertIsNone(record["capture"])
+        self.assertEqual(
+            record["failures"]["p05-test-001"],
+            "TimeoutError",
+        )
+
+    def test_duplicate_run_does_not_overwrite(self):
+        run_and_record(
+            dataset(),
+            FakeTransport(),
+            model_id="fast",
+            run_id="duplicate",
+            output_dir=self.directory,
+        )
+
+        duplicate_transport = FakeTransport()
+
+        with self.assertRaises(ValueError):
+            run_and_record(
+                dataset(),
+                duplicate_transport,
+                model_id="fast",
+                run_id="duplicate",
+                output_dir=self.directory,
+            )
+
+        self.assertEqual(duplicate_transport.calls, 0)
+
+        self.assertEqual(
+            len(list(self.directory.glob("run-*.json"))),
+            1,
+        )
+
+
+    def test_active_reservation_blocks_inference(self):
+        transport = FakeTransport()
+
+        with reserve_run(self.directory, "active"):
+            with self.assertRaises(ValueError):
+                run_and_record(
+                    dataset(),
+                    transport,
+                    model_id="fast",
+                    run_id="active",
+                    output_dir=self.directory,
+                )
+
+        self.assertEqual(transport.calls, 0)
+        self.assertEqual(
+            list(self.directory.glob("run-*.json")),
+            [],
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

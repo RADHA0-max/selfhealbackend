@@ -33,6 +33,15 @@ class TestFileRPCDiagnosis(unittest.TestCase):
             with patch(
                 "agent.file_rpc_diagnosis.diagnose"
             ) as diagnosis:
+                from agent.diagnosis import Diagnosis
+
+                diagnosis.return_value = Diagnosis(
+                    category="service_failure",
+                    target="api",
+                    confidence=0.9,
+                    summary="Synthetic test diagnosis",
+                    recommended_action="investigate_api",
+                )
                 diagnose_file_rpc(
                     {"signal_id": "s1", "target": "api", "status": 503},
                     incoming,
