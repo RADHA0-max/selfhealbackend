@@ -17,13 +17,33 @@ def gate_diagnosis(signal: dict, diagnosis: Diagnosis) -> Diagnosis:
 
     category = diagnosis.category
 
+    expected_actions = {
+        "api": "investigate_api",
+        "auth": "investigate_auth",
+        "worker": "investigate_worker",
+        "database": "investigate_database",
+    }
+
+    action_consistent = (
+        diagnosis.recommended_action == "collect_more_evidence"
+        if category == "unknown"
+        else diagnosis.recommended_action == (
+            "investigate_latency"
+            if category == "latency"
+            else expected_actions[target]
+        )
+    )
+
     unsupported = (
-        diagnosis.target != target
-        or category in {"dependency_failure", "resource_exhaustion"}
+        not action_consistent
+        or (
+            diagnosis.target != target
+            or category in {"dependency_failure", "resource_exhaustion"}
         or (
             category == "latency"
             and "latency_ms" not in probe
             and probe["status"] not in {408, 504}
+        )
         )
     )
 

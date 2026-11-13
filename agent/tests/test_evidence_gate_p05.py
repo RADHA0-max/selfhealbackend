@@ -75,5 +75,35 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertEqual(gate_diagnosis(signal, diagnosis), diagnosis)
 
 
+    def test_rejects_unknown_with_investigation_action(self):
+        signal = {"signal_id": "case7", "target": "api", "status": 200}
+        diagnosis = self.make_diagnosis("unknown")
+
+        result = gate_diagnosis(signal, diagnosis)
+
+        self.assertEqual(result.category, "unknown")
+        self.assertEqual(result.confidence, 0.0)
+        self.assertEqual(result.recommended_action, "collect_more_evidence")
+
+    def test_rejects_cross_target_action(self):
+        signal = {"signal_id": "case8", "target": "api", "status": 503}
+        diagnosis = self.make_diagnosis(
+            "service_failure", "api", "investigate_database"
+        )
+
+        result = gate_diagnosis(signal, diagnosis)
+
+        self.assertEqual(result.category, "unknown")
+        self.assertEqual(result.recommended_action, "collect_more_evidence")
+
+    def test_preserves_consistent_unknown(self):
+        signal = {"signal_id": "case9", "target": "api", "status": 200}
+        diagnosis = self.make_diagnosis(
+            "unknown", "api", "collect_more_evidence"
+        )
+
+        self.assertEqual(gate_diagnosis(signal, diagnosis), diagnosis)
+
+
 if __name__ == "__main__":
     unittest.main()
