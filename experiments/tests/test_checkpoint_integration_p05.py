@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -122,6 +123,25 @@ class CheckpointIntegrationTests(unittest.TestCase):
             self.run_capture(transport)
 
         self.assertEqual(transport.calls, 0)
+
+    def test_failed_run_evaluation_counts_missing_response(self):
+        path = self.run_capture(Transport(fail=True))
+        record = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(record["requested"], 1)
+        self.assertEqual(record["completed"], 0)
+        self.assertEqual(record["partial_responses"], {})
+        self.assertIsNone(record["capture"])
+
+        evaluation = record["evaluation"]
+        self.assertEqual(evaluation["requested"], 1)
+        self.assertEqual(evaluation["valid_decision_rate"], 0.0)
+        self.assertEqual(
+            record["evaluation_mode"],
+            "recorded_capture_offline",
+        )
+        self.assertIs(record["inference_verified"], False)
+        self.assertIsNone(record["recovery_success"])
 
     def test_long_case_id_rejected_before_transport(self):
         transport = Transport()

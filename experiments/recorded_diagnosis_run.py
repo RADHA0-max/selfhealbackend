@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from experiments.dataset_runner import run_dataset
 from experiments.live_diagnosis_runner import capture_diagnoses
 from experiments.run_checkpoint import inspect_checkpoints, write_case_checkpoint
 from experiments.run_record import RunRecordError, write_run_record
@@ -59,11 +60,23 @@ def run_and_record(
             checkpoint=checkpoint,
         )
 
+        # The scorer requires every case ID. Missing responses remain
+        # absent from the capture and count as invalid during evaluation.
+        evaluation_responses = {
+            case["case_id"]: result["partial_responses"].get(
+                case["case_id"], ""
+            )
+            for case in dataset["cases"]
+        }
+        evaluation = run_dataset(dataset, evaluation_responses)
+
         return write_run_record(
             output_dir,
             run_id,
             {
                 "schema_version": 1,
+                "evaluation_mode": "recorded_capture_offline",
+                "evaluation": evaluation,
                 "run_id": run_id,
                 "model_id": model_id,
                 "requested": result["requested"],
