@@ -9,6 +9,7 @@ from typing import Any
 
 from agent.diagnosis import Diagnosis, RPCTransport, diagnose
 from agent.signal_adapter import signal_to_evidence
+from agent.evidence_gate import gate_diagnosis
 
 
 def diagnose_signal(
@@ -17,4 +18,5 @@ def diagnose_signal(
 ) -> Diagnosis:
     """Validate the signal before invoking the diagnosis RPC."""
     evidence = signal_to_evidence(signal)
-    return diagnose(rpc, evidence)
+    diagnosis = diagnose(rpc, evidence)
+    return gate_diagnosis(signal, diagnosis)
