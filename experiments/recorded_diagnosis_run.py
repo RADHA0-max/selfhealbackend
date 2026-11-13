@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +54,17 @@ def run_and_record(
                 error=error,
             )
 
+        # Canonical fingerprint identifies the in-memory dataset.
+        dataset_sha256 = hashlib.sha256(
+            json.dumps(
+                dataset,
+                sort_keys=True,
+                ensure_ascii=False,
+                allow_nan=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+
         result = capture_diagnoses(
             dataset,
             transport,
@@ -76,6 +89,9 @@ def run_and_record(
             {
                 "schema_version": 1,
                 "evaluation_mode": "recorded_capture_offline",
+                "dataset_type": "synthetic",
+                "dataset_fingerprint_method": "canonical_json_sha256",
+                "dataset_sha256": dataset_sha256,
                 "evaluation": evaluation,
                 "run_id": run_id,
                 "model_id": model_id,

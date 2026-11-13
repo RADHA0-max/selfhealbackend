@@ -36,6 +36,52 @@ class RecordedRunTests(unittest.TestCase):
         self.assertFalse(record["inference_verified"])
         self.assertIsNone(record["recovery_success"])
 
+    def test_dataset_fingerprint_is_reproducible(self):
+        original = dataset()
+
+        reordered = json.loads(
+            json.dumps(original, sort_keys=True)
+        )
+
+        changed = json.loads(json.dumps(original))
+        changed["cases"][0]["signal"]["status"] = 500
+
+        records = []
+
+        for run_id, case_dataset in (
+            ("fingerprint-original", original),
+            ("fingerprint-reordered", reordered),
+            ("fingerprint-changed", changed),
+        ):
+            path = run_and_record(
+                case_dataset,
+                FakeTransport(),
+                model_id="fast",
+                run_id=run_id,
+                output_dir=self.directory,
+            )
+            records.append(json.loads(path.read_text()))
+
+        first, second, third = records
+
+        self.assertEqual(
+            first["dataset_sha256"],
+            second["dataset_sha256"],
+        )
+        self.assertNotEqual(
+            first["dataset_sha256"],
+            third["dataset_sha256"],
+        )
+
+        for record in records:
+            self.assertEqual(
+                record["dataset_fingerprint_method"],
+                "canonical_json_sha256",
+            )
+            self.assertEqual(record["dataset_type"], "synthetic")
+            self.assertEqual(len(record["dataset_sha256"]), 64)
+            self.assertFalse(record["inference_verified"])
+
     def test_failed_run_is_saved(self):
         path = run_and_record(
             dataset(),
