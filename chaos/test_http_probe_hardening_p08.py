@@ -66,27 +66,33 @@ class ProbeHardeningTests(unittest.TestCase):
 
         self.assertEqual(opener.calls, 1)
 
-    def test_close_timestamps_remain_increasing(self):
-        opener = FakeOpener(FakeResponse(200))
-        ticks = iter([
-            0.0,
-            0.0001, 0.0002,
-            0.0003, 0.0004,
-            0.0005, 0.0006,
-        ])
+    def test_close_timestamps_rejected(self):
+        from chaos.http_probe_recorder import ProbeError
 
-        events = record_http_probes(
-            "http://127.0.0.1:18080/health",
-            count=3,
-            interval_seconds=0.1,
-            clock=lambda: next(ticks),
-            sleep=lambda _: None,
-            opener=opener,
-        )
+        class Response:
+            status = 200
 
-        self.assertEqual(len(events), 3)
-        self.assertLess(events[0]["time_ms"], events[1]["time_ms"])
-        self.assertLess(events[1]["time_ms"], events[2]["time_ms"])
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        class Opener:
+            def open(self, request, timeout):
+                return Response()
+
+        times = iter([0.0, 0.0, 0.0, 0.0001, 0.0002])
+
+        with self.assertRaises(ProbeError):
+            record_http_probes(
+                "http://127.0.0.1:18080/ready",
+                count=2,
+                interval_seconds=0.1,
+                opener=Opener(),
+                clock=lambda: next(times),
+                sleep=lambda _: None,
+            )
 
     def test_nonfinite_intervals_rejected(self):
         for interval in (float("nan"), float("inf"), float("-inf")):

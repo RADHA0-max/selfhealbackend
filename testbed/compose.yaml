@@ -9,6 +9,7 @@ services:
     working_dir: /workspace
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
+      NANOCLAW_TESTBED_FAULT_MODE: ${NANOCLAW_TESTBED_FAULT_MODE:-healthy}
     command:
       - python
       - -m
@@ -44,6 +45,38 @@ services:
       - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
     depends_on:
       - testbed-app
+    networks:
+      - testbed-net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+
+  testbed-observer:
+    profiles:
+      - observe
+    image: python:3.11-slim
+    user: "${UID:-1000}:${GID:-1000}"
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 32
+    working_dir: /workspace
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      NANOCLAW_OBSERVATION_ID: ${NANOCLAW_OBSERVATION_ID:-}
+    command:
+      - python
+      - -m
+      - chaos.envoy_observer_p09
+    volumes:
+      - ../:/workspace:ro
+      - ./results/p09:/observations
+    depends_on:
+      - testbed-envoy
     networks:
       - testbed-net
     security_opt:

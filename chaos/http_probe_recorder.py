@@ -129,7 +129,9 @@ def record_http_probes(
         finished = clock()
         timestamp_ms = int((started - origin) * 1000)
         if events and timestamp_ms <= events[-1]["time_ms"]:
-            timestamp_ms = events[-1]["time_ms"] + 1
+            raise ProbeError(
+                "probe timestamps lack sufficient measurement resolution"
+            )
 
         events.append({
             "time_ms": timestamp_ms,
