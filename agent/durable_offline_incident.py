@@ -7,7 +7,7 @@ from typing import Any
 
 from agent.offline_incident import evaluate_sustained_offline_incident
 from agent.recovery_verification import verify_sustained_recovery
-from experiments.run_record import write_run_record
+from experiments.run_record import RunRecordError, write_run_record
 from experiments.run_reservation import reserve_run
 
 
@@ -50,7 +50,7 @@ def evaluate_durable_offline_incident(
                 run_id + "-intent",
                 intent,
             )
-        except FileExistsError as exc:
+        except (FileExistsError, RunRecordError) as exc:
             raise IncidentReplayError(
                 "incident already attempted; automatic replay prohibited"
             ) from exc
