@@ -14,7 +14,7 @@ from typing import Any
 from experiments.dataset_loader import validate_dataset
 
 
-MAX_CAPTURE_BYTES = 1024 * 1024
+MAX_CAPTURE_BYTES = 4 * 1024 * 1024
 MAX_RESPONSE_BYTES = 16 * 1024
 IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}")
 

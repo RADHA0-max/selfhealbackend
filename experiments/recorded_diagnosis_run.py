@@ -103,4 +103,5 @@ def run_and_record(
                 "inference_verified": False,
                 "recovery_success": None,
             },
+            max_bytes=4 * 1024 * 1024,
         )
