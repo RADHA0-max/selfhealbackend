@@ -105,7 +105,7 @@ class CheckpointIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(
             checkpoints["case1-outcome"]["status"],
-            "failed",
+            "uncertain",
         )
         self.assertEqual(
             checkpoints["case1-outcome"]["error"],

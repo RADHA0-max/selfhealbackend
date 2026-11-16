@@ -22,6 +22,8 @@ def write_run_record(
     directory: str | Path,
     run_id: str,
     record: dict[str, Any],
+    *,
+    max_bytes: int = MAX_RECORD_BYTES,
 ) -> Path:
     """Create one bounded record without overwriting an existing run."""
     if not isinstance(run_id, str) or not RUN_ID.fullmatch(run_id):
@@ -45,8 +47,13 @@ def write_run_record(
     except (TypeError, ValueError, OverflowError) as exc:
         raise RunRecordError("record is not valid JSON") from exc
 
-    if len(payload) > MAX_RECORD_BYTES:
-        raise RunRecordError("record exceeds 1 MiB")
+    if type(max_bytes) is not int or not (
+        1 <= max_bytes <= 4 * 1024 * 1024
+    ):
+        raise RunRecordError("invalid record size limit")
+
+    if len(payload) > max_bytes:
+        raise RunRecordError("record exceeds configured size limit")
 
     destination = directory / ("run-" + run_id + ".json")
     temporary = directory / (

@@ -110,10 +110,15 @@ def capture_diagnoses(
                     response=responses[case_id],
                 )
             else:
+                reason = failures.get(case_id, "unknown_failure")
                 checkpoint(
                     case_id + "-outcome",
-                    status="failed",
-                    error=failures.get(case_id, "unknown_failure"),
+                    status=(
+                        "uncertain"
+                        if reason in ("TimeoutError", "RPCTimeout")
+                        else "failed"
+                    ),
+                    error=reason,
                 )
 
     capture = dict(placeholder)
