@@ -6,15 +6,26 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from testbed.app.faults import controller_from_environment
+
 
 class TargetHandler(BaseHTTPRequestHandler):
     """Deterministic HTTP endpoints for controlled experiments."""
+
+    fault_controller = None
 
     def do_GET(self):
         if self.path == "/health":
             self._send_json(200, {"status": "healthy"})
         elif self.path == "/ready":
-            self._send_json(200, {"ready": True})
+            observation = self.fault_controller.next_observation()
+            if observation.delay_seconds:
+                import time
+                time.sleep(observation.delay_seconds)
+            self._send_json(
+                observation.status,
+                {"ready": observation.status == 200},
+            )
         elif self.path == "/api/data":
             self._send_json(200, {
                 "service": "nanoclaw-testbed",
@@ -47,6 +58,7 @@ def main():
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
 
+    TargetHandler.fault_controller = controller_from_environment()
     server = ThreadingHTTPServer((args.host, args.port), TargetHandler)
 
     try:
