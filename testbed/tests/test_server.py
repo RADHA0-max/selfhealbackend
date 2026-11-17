@@ -6,12 +6,14 @@ import unittest
 from unittest.mock import Mock
 
 from testbed.app.server import TargetHandler
+from testbed.app.faults import FaultController
 
 
 def request(path):
     """Exercise the HTTP handler without opening a socket."""
     handler = TargetHandler.__new__(TargetHandler)
     handler.path = path
+    handler.fault_controller = FaultController("healthy")
     handler.wfile = io.BytesIO()
 
     handler.send_response = Mock()

@@ -26,6 +26,11 @@ class TestIsolation(unittest.TestCase):
             self.compose,
         )
 
+    def test_observer_mounts_are_scoped(self):
+        self.assertIn("../chaos:/workspace/chaos:ro", self.compose)
+        self.assertNotIn("../testbed:/workspace/testbed:ro", self.compose)
+        self.assertNotIn("../:/workspace:ro", self.compose)
+
     def test_envoy_admin_disabled(self):
         self.assertNotIn("\nadmin:", self.envoy)
 
