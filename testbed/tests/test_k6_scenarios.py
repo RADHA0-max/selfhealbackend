@@ -17,23 +17,23 @@ class TestK6Scenarios(unittest.TestCase):
             "cache.js",
             "parallel.js",
         }
-        actual = {path.name for path in ROOT.glob("*.js")}
+        actual = {path.name for path in (p for p in ROOT.glob("*.js") if p.name != "target_guard.js")}
         self.assertTrue(expected.issubset(actual))
 
     def test_scripts_use_explicit_target(self):
-        for path in ROOT.glob("*.js"):
+        for path in (p for p in ROOT.glob("*.js") if p.name != "target_guard.js"):
             with self.subTest(script=path.name):
                 content = path.read_text()
                 self.assertIn("TARGET_URL", content)
 
     def test_scripts_have_bounded_duration(self):
-        for path in ROOT.glob("*.js"):
+        for path in (p for p in ROOT.glob("*.js") if p.name != "target_guard.js"):
             with self.subTest(script=path.name):
                 content = path.read_text()
                 self.assertIn("duration:", content)
 
     def test_scripts_have_request_timeout(self):
-        for path in ROOT.glob("*.js"):
+        for path in (p for p in ROOT.glob("*.js") if p.name != "target_guard.js"):
             with self.subTest(script=path.name):
                 content = path.read_text()
                 self.assertIn("timeout: '3s'", content)

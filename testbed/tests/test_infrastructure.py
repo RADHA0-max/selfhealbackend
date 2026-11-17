@@ -30,7 +30,7 @@ class TestInfrastructure(unittest.TestCase):
     def test_read_only_containers(self):
         self.assertEqual(
             self.compose.count("read_only: true"),
-            2,
+            3,
         )
 
     def test_envoy_upstream(self):

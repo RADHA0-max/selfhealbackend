@@ -1,7 +1,8 @@
+import { safeTarget } from './target_guard.js';
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-const TARGET = __ENV.TARGET_URL || 'http://127.0.0.1:10000';
+const TARGET = safeTarget(__ENV.TARGET_URL || 'http://127.0.0.1:10000');
 
 export const options = {
   scenarios: {

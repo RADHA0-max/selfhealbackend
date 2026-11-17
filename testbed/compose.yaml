@@ -73,7 +73,7 @@ services:
       - -m
       - chaos.envoy_observer_p09
     volumes:
-      - ../:/workspace:ro
+      - ../chaos:/workspace/chaos:ro
       - ./results/p09:/observations
     depends_on:
       - testbed-envoy
