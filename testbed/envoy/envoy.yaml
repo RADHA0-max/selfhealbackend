@@ -1,0 +1,57 @@
+static_resources:
+  listeners:
+    - name: testbed_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 10000
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: testbed_http
+                preserve_external_request_id: true
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                      log_format:
+                        json_format:
+                          timestamp: "%START_TIME%"
+                          client_ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+                          method: "%REQ(:METHOD)%"
+                          path: "%REQ(:PATH)%"
+                          status: "%RESPONSE_CODE%"
+                          duration_ms: "%DURATION%"
+                          user_agent: "%REQ(USER-AGENT)%"
+                          request_id: "%REQ(X-REQUEST-ID)%"
+                route_config:
+                  name: testbed_routes
+                  virtual_hosts:
+                    - name: testbed_backend
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: testbed_app
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+    - name: testbed_app
+      connect_timeout: 2s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: testbed_app
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: testbed-app
+                      port_value: 18080
