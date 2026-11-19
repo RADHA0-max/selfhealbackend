@@ -1,6 +1,9 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { safeTarget } from './target_guard.js';
+import { Counter } from 'k6/metrics';
+
+const executedRequests = new Counter('nanoclaw_request_manifest');
 
 const TARGET = safeTarget(
   __ENV.TARGET_URL || 'http://testbed-envoy:10000'
@@ -9,9 +12,10 @@ const TARGET = safeTarget(
 export const options = {
   scenarios: {
     organic_60vu: {
-      executor: 'constant-vus',
+      executor: 'per-vu-iterations',
       vus: 60,
-      duration: '30s',
+      iterations: 20,
+      maxDuration: '30s',
       gracefulStop: '0s',
     },
   },
@@ -38,6 +42,14 @@ export default function () {
   const jar = http.cookieJar();
   const session = `organic-vu-${vu}`;
 
+  // Unique per VU/iteration. This identifies a workload request,
+  // not an authenticated client or independently verified source IP.
+  const runId = __ENV.NANOCLAW_RUN_ID;
+  if (!runId || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$/.test(runId)) {
+    throw new Error('Valid NANOCLAW_RUN_ID is required');
+  }
+  const requestId = `${runId}-organic-vu-${vu}-iter-${iteration}`;
+
   if (!jar.cookiesForURL(TARGET).nanoclaw_session) {
     jar.set(TARGET, 'nanoclaw_session', session);
   }
@@ -46,9 +58,15 @@ export default function () {
     headers: {
       'User-Agent': 'NanoClaw-Organic-P16/1.0',
       'X-Test-Session': session,
+      'X-Request-ID': requestId,
     },
     timeout: '3s',
     redirects: 0,
+  });
+
+  executedRequests.add(1, {
+    request_id: requestId,
+    workload: 'organic_60vu',
   });
 
   check(response, {

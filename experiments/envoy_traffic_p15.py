@@ -91,7 +91,8 @@ def parse_envoy_jsonl(raw: bytes) -> list[dict]:
         raise TrafficEvidenceError("invalid event count")
 
     events = []
-    previous = None
+    earliest = None
+    latest = None
 
     for line in lines:
         if not line or len(line.encode("utf-8")) > 4096:
@@ -111,10 +112,12 @@ def parse_envoy_jsonl(raw: bytes) -> list[dict]:
 
         timestamp = _timestamp(row["timestamp"])
 
-        if previous is not None and timestamp < previous:
-            raise TrafficEvidenceError("out-of-order timestamps")
-
-        previous = timestamp
+        # Request-start timestamps may be out of order when concurrent
+        # requests finish in a different order from their start order.
+        if earliest is None or timestamp < earliest:
+            earliest = timestamp
+        if latest is None or timestamp > latest:
+            latest = timestamp
 
         ip = _text(row["client_ip"], "client_ip", 64)
 
@@ -162,7 +165,7 @@ def parse_envoy_jsonl(raw: bytes) -> list[dict]:
             "request_id": request_id,
         })
 
-    delta = events[-1]["timestamp"] - events[0]["timestamp"]
+    delta = latest - earliest
     window_ms = (
         delta.days * 86_400_000
         + delta.seconds * 1000

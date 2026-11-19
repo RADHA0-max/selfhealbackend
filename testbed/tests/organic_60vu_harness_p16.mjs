@@ -42,10 +42,16 @@ function createVU(vu, target = 'http://testbed-envoy:10000') {
     .replace('export default function ()', 'function workload()');
 
   const context = {
-    __ENV: { TARGET_URL: target },
+    __ENV: { TARGET_URL: target , NANOCLAW_RUN_ID: 'offline' },
     __VU: vu,
     __ITER: 0,
     safeTarget,
+    Counter: class {
+      constructor(name) {
+        this.name = name;
+      }
+      add() {}
+    },
     http: {
       cookieJar() {
         return jar;
@@ -95,7 +101,11 @@ const vus = Array.from(
 );
 
 assert.equal(vus[0].options.scenarios.organic_60vu.vus, 60);
-assert.equal(vus[0].options.scenarios.organic_60vu.duration, '30s');
+assert.equal(vus[0].options.scenarios.organic_60vu.executor, 'per-vu-iterations');
+assert.equal(vus[0].options.scenarios.organic_60vu.vus, 60);
+assert.equal(vus[0].options.scenarios.organic_60vu.iterations, 20);
+assert.equal(vus[0].options.scenarios.organic_60vu.maxDuration, '30s');
+assert.equal(vus[0].options.scenarios.organic_60vu.gracefulStop, '0s');
 
 for (const vu of vus) {
   for (let iteration = 0; iteration < 3; iteration++) {

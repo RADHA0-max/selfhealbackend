@@ -86,10 +86,10 @@ class TestEnvoyTrafficP15(unittest.TestCase):
         records[0]["client_ip"] = "not-an-ip"
         self.reject(records)
 
-    def test_reject_out_of_order(self):
+    def test_concurrent_timestamps_allowed(self):
         records = copy.deepcopy(self.records)
         records[2]["timestamp"] = records[0]["timestamp"]
-        self.reject(records)
+        self.assertEqual(len(parse_envoy_jsonl(encode(records))), len(records))
 
     def test_reject_invalid_method(self):
         records = copy.deepcopy(self.records)
@@ -126,10 +126,10 @@ class TestEnvoyTrafficP15(unittest.TestCase):
         parsed = parse_envoy_jsonl(encode(records))
         self.assertEqual(len(parsed), 20)
 
-    def test_decreasing_timestamp_rejected(self):
+    def test_decreasing_timestamp_allowed(self):
         records = copy.deepcopy(self.records)
         records[2]["timestamp"] = records[0]["timestamp"]
-        self.reject(records)
+        self.assertEqual(len(parse_envoy_jsonl(encode(records))), len(records))
 
     def test_reject_directory(self):
         with tempfile.TemporaryDirectory() as directory:
