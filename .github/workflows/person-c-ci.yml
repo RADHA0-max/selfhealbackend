@@ -1,0 +1,60 @@
+name: Person C Regression CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'experiments/**'
+      - 'testbed/**'
+      - '.github/workflows/person-c-ci.yml'
+  push:
+    branches: [person-c-integration]
+
+permissions:
+  contents: read
+
+jobs:
+  person-c-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Python regression
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python -m unittest discover -s experiments/tests -p 'test_*.py' -v
+
+      - name: Python syntax
+        run: |
+          python - <<'CHECK'
+          from pathlib import Path
+          paths = sorted(Path("experiments").rglob("*.py"))
+          for path in paths:
+              compile(path.read_bytes(), str(path), "exec")
+          print(f"PASS: {len(paths)} Python files")
+          CHECK
+
+      - name: Node regression
+        run: |
+          node --test testbed/tests/organic_request_ids_final.mjs testbed/tests/organic_60vu_harness_p16.mjs
+
+      - name: JavaScript syntax
+        run: |
+          node --check testbed/k6/organic_60vu_p16.js
+          node --check testbed/k6/target_guard.js
+          node --check testbed/tests/organic_60vu_harness_p16.mjs
+          node --check testbed/tests/organic_request_ids_final.mjs
