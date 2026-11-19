@@ -1,0 +1,27 @@
+services:
+  testbed-k6:
+    image: grafana/k6@sha256:3e4186aea62e11a45560bfc51e19eeafe82fc07ce069c78aff44b7ff893d9a5e
+    pull_policy: never
+    user: "${NANOCLAW_K6_UID:-1014}:${NANOCLAW_K6_GID:-1014}"
+    profiles: ["traffic"]
+    networks: [testbed-net]
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=16m"]
+
+    volumes:
+      - "./k6:/scripts:ro"
+      - "./results/final:/results:rw"
+
+    environment:
+      TARGET_URL: "http://testbed-envoy:10000"
+      NANOCLAW_RUN_ID: "${NANOCLAW_RUN_ID:?Set a unique run ID}"
+
+    entrypoint: ["k6"]
+
+    command:
+      - run
+      - --out
+      - "json=/results/${NANOCLAW_RUN_ID:?Set a unique run ID}.jsonl"
+      - /scripts/organic_60vu_p16.js
