@@ -1,0 +1,72 @@
+name: nanoclaw-p01-phase2
+
+services:
+  testbed-app:
+    image: nginx:alpine
+    pull_policy: never
+    user: "101:101"
+    entrypoint: ["nginx"]
+    command: ["-g", "daemon off;"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /var/cache/nginx:rw,nosuid,size=16m
+      - /var/run:rw,nosuid,size=4m
+      - /tmp:rw,nosuid,size=4m
+    volumes:
+      - ./app/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - testbed-net
+
+  testbed-envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    pull_policy: never
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,nosuid,size=8m
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    entrypoint: ["/usr/local/bin/envoy"]
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "warning"]
+    depends_on:
+      - testbed-app
+    networks:
+      - testbed-net
+
+  testbed-k6:
+    image: grafana/k6:latest
+    pull_policy: never
+    profiles:
+      - traffic
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,nosuid,size=16m
+    volumes:
+      - ./k6:/scripts:ro
+      - ./results/p01:/results:rw
+    environment:
+      TARGET_URL: http://testbed-envoy:10000
+      NANOCLAW_RUN_ID: "${NANOCLAW_RUN_ID:?Set a unique run ID}"
+    entrypoint: [k6]
+    command:
+      - run
+      - --out
+      - "json=/results/${NANOCLAW_RUN_ID:?Set a unique run ID}.jsonl"
+      - /scripts/p01_ddos.js
+    depends_on:
+      - testbed-envoy
+    networks:
+      - testbed-net
+
+networks:
+  testbed-net:
+    internal: true
+    attachable: false
